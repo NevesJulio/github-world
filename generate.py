@@ -1,21 +1,109 @@
-from PIL import Image, ImageDraw
+from PIL import Image
 
-WIDTH = 800
-HEIGHT = 160
+# ============================================================
+# CONFIG
+# ============================================================
 
-# -----------------------
+TILE_SIZE = 16
+
+# ============================================================
+# TILESETS
+# ============================================================
+
+tileset_grass = Image.open(
+    "/workspaces/github-world/taiga_.png"
+).convert("RGBA")
+
+tileset_path = Image.open(
+    "/workspaces/github-world/forestPath_.png"
+).convert("RGBA")
+
+
+def get_tile(col, row, tileset, size):
+    x = col * size
+    y = row * size
+
+    return tileset.crop((
+        x,
+        y,
+        x + size,
+        y + size
+    ))
+
+
+# ============================================================
+# TILES
+# ============================================================
+
+grass = get_tile(
+    8, 1,
+    tileset_grass,
+    TILE_SIZE
+)
+
+floor = get_tile(
+    6, 1,
+    tileset_path,
+    TILE_SIZE
+)
+
+
+# ============================================================
 # MAP
-# -----------------------
+# ============================================================
 
-nodes = {
-    "Python": (150, 80),
-    "AI / ML": (400, 80),
-    "C++": (650, 80),
+MAP = [
+    "GGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGG",
+    "PPPPPPPPPPPPPPPPPPPPPPPPP",
+    "PPPPPPPPPPPPPPPPPPPPPPPPP",
+    "PPPPPPPPPPPPPPPPPPPPPPPPP",
+    "GGGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGGG",
+]
+
+tiles = {
+    "G": grass,
+    "P": floor,
 }
 
-# -----------------------
-# PLAYER SPRITES
-# -----------------------
+
+# ============================================================
+# RENDER MAP
+# ============================================================
+
+MAP_WIDTH = len(MAP[0]) * TILE_SIZE
+MAP_HEIGHT = len(MAP) * TILE_SIZE
+
+background = Image.new(
+    "RGBA",
+    (MAP_WIDTH, MAP_HEIGHT)
+)
+
+for row, line in enumerate(MAP):
+
+    for col, tile_code in enumerate(line):
+
+        tile = tiles[tile_code]
+
+        x = col * TILE_SIZE
+        y = row * TILE_SIZE
+
+        background.paste(
+            tile,
+            (x, y),
+            tile
+        )
+
+
+# Salva só para conseguirmos visualizar o mapa
+background.save("map.png")
+
+
+# ============================================================
+# PLAYER
+# ============================================================
 
 sprites = [
     Image.open("assets/me/frame_01.png").convert("RGBA"),
@@ -23,70 +111,43 @@ sprites = [
     Image.open("assets/me/frame_03.png").convert("RGBA"),
 ]
 
-# Ajuste se seus sprites estiverem grandes
 SPRITE_SIZE = (32, 32)
 
 sprites = [
-    sprite.resize(SPRITE_SIZE, Image.Resampling.NEAREST)
+    sprite.resize(
+        SPRITE_SIZE,
+        Image.Resampling.NEAREST
+    )
     for sprite in sprites
 ]
 
-# -----------------------
+
+# ============================================================
+# PLAYER POSITION
+# ============================================================
+
+# Vamos colocar o boneco no centro do mapa
+
+player_x = MAP_WIDTH // 2
+
+# Linha 5 do mapa = caminho
+player_y = 6 * TILE_SIZE
+
+
+# ============================================================
 # ANIMATION
-# -----------------------
-
-start_x = 80
-end_x = nodes["Python"][0]
-
-player_y = 90
-
-number_of_frames = 30
+# ============================================================
 
 frames = []
 
-for frame_number in range(number_of_frames):
+for frame_number in range(len(sprites)):
 
-    # Cria fundo
-    img = Image.new("RGB", (WIDTH, HEIGHT), "white")
-    draw = ImageDraw.Draw(img)
+    # IMPORTANTE:
+    # Agora copiamos o mapa, em vez de criar fundo branco
+    img = background.copy()
 
-    # Caminho
-    draw.line(
-        (150, 80, 650, 80),
-        fill="gray",
-        width=3
-    )
+    sprite = sprites[frame_number]
 
-    # Nós
-    for name, (x, y) in nodes.items():
-
-        draw.ellipse(
-            (x - 8, y - 8, x + 8, y + 8),
-            fill="black"
-        )
-
-        draw.text(
-            (x - 25, y - 35),
-            name,
-            fill="black"
-        )
-
-    # -----------------------
-    # PLAYER POSITION
-    # -----------------------
-
-    progress = frame_number / (number_of_frames - 1)
-
-    player_x = int(
-        start_x + (end_x - start_x) * progress
-    )
-
-    # Alterna os sprites
-    sprite = sprites[
-        frame_number % len(sprites)
-    ]
-
-    # Centraliza o sprite
     position = (
         player_x - sprite.width // 2,
         player_y - sprite.height
@@ -100,16 +161,18 @@ for frame_number in range(number_of_frames):
 
     frames.append(img)
 
-# -----------------------
+
+# ============================================================
 # SAVE GIF
-# -----------------------
+# ============================================================
 
 frames[0].save(
     "world.gif",
     save_all=True,
     append_images=frames[1:],
-    duration=100,
+    duration=180,
     loop=0
 )
 
+print("map.png generated!")
 print("world.gif generated!")
