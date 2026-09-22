@@ -1,4 +1,8 @@
 from PIL import Image
+from pathlib import Path
+from PIL import Image
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # ============================================================
 # CONFIG
@@ -10,8 +14,8 @@ TILE_SIZE = 16
 # TILESETS
 # ============================================================
 
-tileset_grass = Image.open("taiga_.png").convert("RGBA")
-tileset_path = Image.open("forestPath_.png").convert("RGBA")
+tileset_grass = Image.open(BASE_DIR / "taiga_.png").convert("RGBA")
+tileset_path = Image.open(BASE_DIR / "forestPath_.png").convert("RGBA")
 
 
 def get_tile(col, row, tileset, size):
