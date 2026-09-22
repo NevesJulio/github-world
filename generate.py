@@ -10,13 +10,8 @@ TILE_SIZE = 16
 # TILESETS
 # ============================================================
 
-tileset_grass = Image.open(
-    "/workspaces/github-world/taiga_.png"
-).convert("RGBA")
-
-tileset_path = Image.open(
-    "/workspaces/github-world/forestPath_.png"
-).convert("RGBA")
+tileset_grass = Image.open("taiga_.png").convert("RGBA")
+tileset_path = Image.open("forestPath_.png").convert("RGBA")
 
 
 def get_tile(col, row, tileset, size):
