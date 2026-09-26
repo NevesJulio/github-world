@@ -40,14 +40,15 @@ variados = Image.open(
 n = 1
 
 for row in range(1, 3):
-    for col in range(8, 12):
+    for col in range(10, 14):
         assets.add(Tile(
             f"g{n}",
-            taiga,
+            grama,
             col=col,
             row=row
         ))
         n += 1
+
 
 
 # =========================
@@ -73,6 +74,33 @@ assets.add(Tile(
     row=6,
     width=3,
     height=4
+))
+
+assets.add(Tile(
+    "f8",
+    grama,
+    col=5,
+    row=3,
+    width=1,
+    height=1
+))
+
+assets.add(Tile(
+    "f9",
+    grama,
+    col=3,
+    row=3,
+    width=1,
+    height=1
+))
+
+assets.add(Tile(
+    "f10",
+    grama,
+    col=4,
+    row=3,
+    width=1,
+    height=1
 ))
 
 # =========================
