@@ -1,102 +1,147 @@
 from PIL import Image
 from pathlib import Path
-from PIL import Image
+import random
+from assets_config import assets
+
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# ============================================================
-# CONFIG
-# ============================================================
-
 TILE_SIZE = 16
 
+
 # ============================================================
-# TILESETS
+# MAPS
 # ============================================================
 
-tileset_grass = Image.open(BASE_DIR / "taiga_.png").convert("RGBA")
-tileset_path = Image.open(BASE_DIR / "forestPath_.png").convert("RGBA")
+# ============================================================
+# MAP CONFIG
+# ============================================================
 
-
-def get_tile(col, row, tileset, size):
-    x = col * size
-    y = row * size
-
-    return tileset.crop((
-        x,
-        y,
-        x + size,
-        y + size
-    ))
+MAP_COLS = 25
+MAP_ROWS = 12
 
 
 # ============================================================
-# TILES
+# CREATE LAYERS
 # ============================================================
-
-grass = get_tile(
-    8, 1,
-    tileset_grass,
-    TILE_SIZE
-)
-
-floor = get_tile(
-    6, 1,
-    tileset_path,
-    TILE_SIZE
-)
-
-
-# ============================================================
-# MAP
-# ============================================================
-
-MAP = [
-    "GGGGGGGGGGGGGGGGGGGGGGGGG",
-    "GGGGGGGGGGGGGGGGGGGGGGGGG",
-    "GGGGGGGGGGGGGGGGGGGGGGGGG",
-    "PPPPPPPPPPPPPPPPPPPPPPPPP",
-    "PPPPPPPPPPPPPPPPPPPPPPPPP",
-    "PPPPPPPPPPPPPPPPPPPPPPPPP",
-    "GGGGGGGGGGGGGGGGGGGGGGGGG",
-    "GGGGGGGGGGGGGGGGGGGGGGGGG",
+GRASS_TILES = [
+    "g1",
+    "g2",
+    "g3",
+    "g4",
+    "g5",
+    "g6",
+    "g7",
+    "g8"
 ]
 
-tiles = {
-    "G": grass,
-    "P": floor,
-}
+GRASS_WEIGHTS = [
+    5,  # g1
+    5,  # g2
+    75,  # g3
+    5,  # g4
+    2,   # g5
+    3,   # g6
+    3,   # g7
+    2    # g8
+]
+
+GROUND_MAP = [
+    [
+        random.choices(
+            GRASS_TILES,
+            weights=GRASS_WEIGHTS,
+            k=1
+        )[0]
+        for _ in range(MAP_COLS)
+    ]
+    for _ in range(MAP_ROWS)
+]
+
+OBJECT_MAP = [
+    [None for _ in range(MAP_COLS)]
+    for _ in range(MAP_ROWS)
+]
+
+TOP_MAP = [
+    [None for _ in range(MAP_COLS)]
+    for _ in range(MAP_ROWS)
+]
 
 
 # ============================================================
-# RENDER MAP
+# TERRAIN
 # ============================================================
 
-MAP_WIDTH = len(MAP[0]) * TILE_SIZE
-MAP_HEIGHT = len(MAP) * TILE_SIZE
+for col in range(MAP_COLS):
+    GROUND_MAP[5][col] = "f2"
+    GROUND_MAP[6][col] = "f5"
+
+
+# ============================================================
+# TREES
+# ============================================================
+
+OBJECT_MAP[2][2] = "t1"
+OBJECT_MAP[2][7] = "t2"
+
+OBJECT_MAP[8][19] = "t1"
+OBJECT_MAP[7][23] = "t2"
+
+
+# ============================================================
+# BUILDINGS
+# ============================================================
+
+OBJECT_MAP[3][15] = "c1"
+
+
+# ============================================================
+# RENDER FUNCTION
+# ============================================================
+
+def render_layer(canvas, layer):
+
+    for row, line in enumerate(layer):
+
+        for col, asset_name in enumerate(line):
+
+            if asset_name is None:
+                continue
+
+            asset = assets.get(asset_name)
+
+            x = col * TILE_SIZE
+            y = row * TILE_SIZE
+
+            canvas.paste(
+                asset.image,
+                (x, y),
+                asset.image
+            )
+
+
+# ============================================================
+# MAP SIZE
+# ============================================================
+
+MAP_WIDTH = len(GROUND_MAP[0]) * TILE_SIZE
+MAP_HEIGHT = len(GROUND_MAP) * TILE_SIZE
+
+
+# ============================================================
+# BACKGROUND
+# ============================================================
 
 background = Image.new(
     "RGBA",
-    (MAP_WIDTH, MAP_HEIGHT)
+    (MAP_WIDTH, MAP_HEIGHT),
+    (0, 0, 0, 0)
 )
 
-for row, line in enumerate(MAP):
+render_layer(background, GROUND_MAP)
+render_layer(background, OBJECT_MAP)
 
-    for col, tile_code in enumerate(line):
-
-        tile = tiles[tile_code]
-
-        x = col * TILE_SIZE
-        y = row * TILE_SIZE
-
-        background.paste(
-            tile,
-            (x, y),
-            tile
-        )
-
-
-# Salva só para conseguirmos visualizar o mapa
 background.save("map.png")
 
 
@@ -105,9 +150,9 @@ background.save("map.png")
 # ============================================================
 
 sprites = [
-    Image.open("assets/me/frame_01.png").convert("RGBA"),
-    Image.open("assets/me/frame_02.png").convert("RGBA"),
-    Image.open("assets/me/frame_03.png").convert("RGBA"),
+    Image.open(BASE_DIR / "assets/me/frame_01.png").convert("RGBA"),
+    Image.open(BASE_DIR / "assets/me/frame_02.png").convert("RGBA"),
+    Image.open(BASE_DIR / "assets/me/frame_03.png").convert("RGBA"),
 ]
 
 SPRITE_SIZE = (32, 32)
@@ -125,12 +170,11 @@ sprites = [
 # PLAYER POSITION
 # ============================================================
 
-# Vamos colocar o boneco no centro do mapa
+player_col = 2
+player_row = 3
 
-player_x = MAP_WIDTH // 2
-
-# Linha 5 do mapa = caminho
-player_y = 6 * TILE_SIZE
+player_x = player_col * TILE_SIZE
+player_y = player_row * TILE_SIZE
 
 
 # ============================================================
@@ -139,24 +183,24 @@ player_y = 6 * TILE_SIZE
 
 frames = []
 
-for frame_number in range(len(sprites)):
+for sprite in sprites:
 
-    # IMPORTANTE:
-    # Agora copiamos o mapa, em vez de criar fundo branco
     img = background.copy()
-
-    sprite = sprites[frame_number]
 
     position = (
         player_x - sprite.width // 2,
         player_y - sprite.height
     )
 
+    # personagem
     img.paste(
         sprite,
         position,
         sprite
     )
+
+    # coisas que precisam ficar na frente
+    render_layer(img, TOP_MAP)
 
     frames.append(img)
 
