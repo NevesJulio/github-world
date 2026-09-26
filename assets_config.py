@@ -66,6 +66,14 @@ for row in range(6, 8):
         ))
         n += 1
 
+assets.add(Tile(
+    "f7",
+    grama,
+    col=1,
+    row=6,
+    width=3,
+    height=4
+))
 
 # =========================
 # TREES
