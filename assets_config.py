@@ -12,23 +12,23 @@ arvores = Image.open(
 ).convert("RGBA")
 
 chao = Image.open(
-    "assets/arvores.png"
+    "assets/chao.png"
 ).convert("RGBA")
 
 grama = Image.open(
-    "assets/arvores.png"
+    "assets/grama.png"
 ).convert("RGBA")
 
 madeira = Image.open(
-    "assets/arvores.png"
+    "assets/madeira.png"
 ).convert("RGBA")
 
 taiga = Image.open(
-    "assets/arvores.png"
+    "assets/taiga.png"
 ).convert("RGBA")
 
 variados = Image.open(
-    "assets/arvores.png"
+    "assets/variados.png"
 ).convert("RGBA")
 
 
