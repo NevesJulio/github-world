@@ -1,7 +1,7 @@
 from PIL import Image
 from pathlib import Path
-import random
-from assets_config import assets
+
+from assets_config_V2 import assets
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -13,55 +13,33 @@ TILE_SIZE = 16
 # MAP CONFIG
 # ============================================================
 
-MAP_COLS = 25
-MAP_ROWS = 12
+MAP_COLS = 50
+MAP_ROWS = 30
 
 
 # ============================================================
 # CREATE LAYERS
 # ============================================================
 
-GRASS_TILES = [
-    "g1",
-    "g2",
-    "g3",
-    "g4",
-    "g5",
-    "g6",
-    "g7",
-    "g8"
-]
-
-GRASS_WEIGHTS = [
-    2,   # g1
-    2,   # g2
-    2,  # g3
-    80,   # g4
-    4,   # g5
-    4,   # g6
-    4,   # g7
-    2    # g8
-]
-
-
 GROUND_MAP = [
-    [
-        random.choices(
-            GRASS_TILES,
-            weights=GRASS_WEIGHTS,
-            k=1
-        )[0]
-        for _ in range(MAP_COLS)
-    ]
+    [None for _ in range(MAP_COLS)]
     for _ in range(MAP_ROWS)
 ]
 
+DETAIL_MAP = [
+    [None for _ in range(MAP_COLS)]
+    for _ in range(MAP_ROWS)
+]
+
+PATH_MAP = [
+    [None for _ in range(MAP_COLS)]
+    for _ in range(MAP_ROWS)
+]
 
 OBJECT_MAP = [
     [None for _ in range(MAP_COLS)]
     for _ in range(MAP_ROWS)
 ]
-
 
 TOP_MAP = [
     [None for _ in range(MAP_COLS)]
@@ -70,182 +48,446 @@ TOP_MAP = [
 
 
 # ============================================================
-# PATH SYSTEM
+# BRIDGE SYSTEM
 # ============================================================
 
-# f1 ╭
-# f2 ─
-# f3 ╮
-# f4 ╰
-# f5 ─
-# f6 ╯
-# f7 │
 
-PATH_TILES = {
+def create_bridge(
+    layer,
+    start,
+    end
+):
+    """
+    Cria uma ponte horizontal.
 
-    # retas
-    frozenset(["left", "right"]): "f2",
-    frozenset(["up", "down"]): "f7",
+    p1 = início
+    p2 = meio
+    p3 = final
 
-    # cantos
-    frozenset(["right", "down"]): "f1",
-    frozenset(["left", "down"]): "f3",
+    start e end usam:
+        (col, row)
 
-    frozenset(["right", "up"]): "f4",
-    frozenset(["left", "up"]): "f6",
-}
+    Exemplo:
+        start = (10, 8)
+        end   = (18, 8)
+    """
+
+    start_x, start_y = start
+    end_x, end_y = end
+
+    # Por enquanto somente ponte horizontal
+    if start_y != end_y:
+        raise ValueError(
+            "Bridge must be horizontal."
+        )
+
+    # garante que start está à esquerda
+    if start_x > end_x:
+        start_x, end_x = end_x, start_x
+
+    # precisa existir espaço para começo e fim
+    if end_x - start_x < 2:
+        raise ValueError(
+            "Bridge must be at least 3 tiles long."
+        )
+
+    # início
+    layer[start_y][start_x] = "p1"
+
+    # meio
+    for x in range(start_x + 1, end_x):
+        layer[start_y][x] = "p2"
+
+    # final
+    layer[start_y][end_x] = "p3"
 
 
-def direction(current, neighbor):
-
-    x, y = current
-    nx, ny = neighbor
-
-    if nx < x:
-        return "left"
-
-    if nx > x:
-        return "right"
-
-    if ny < y:
-        return "up"
-
-    if ny > y:
-        return "down"
-
-    raise ValueError("Current and neighbor cannot be the same position.")
 
 
-def expand_path(points):
+# ============================================================
+# ISLAND SYSTEM
+# ============================================================
 
-    path = []
+# Estrutura lógica dos tiles:
+#
+# g1  g2  g3
+# g4  g5  g6
+# g7  g8  g9
+#
+# g1 = canto superior esquerdo
+# g2 = borda superior
+# g3 = canto superior direito
+#
+# g4 = borda esquerda
+# g5 = centro
+# g6 = borda direita
+#
+# g7 = canto inferior esquerdo
+# g8 = borda inferior
+# g9 = canto inferior direito
 
-    for i in range(len(points) - 1):
 
-        x1, y1 = points[i]
-        x2, y2 = points[i + 1]
 
-        # trecho horizontal
-        if y1 == y2:
 
-            step = 1 if x2 > x1 else -1
+def create_organic_island(
+    layer,
+    center_x,
+    center_y,
+    widths
+):
+    """
+    Cria uma ilha orgânica usando:
 
-            for x in range(x1, x2, step):
-                path.append((x, y1))
+        g1  g2  g3
+        g4  g5  g6
+        g7  g8  g9
 
-        # trecho vertical
-        elif x1 == x2:
+    A largura de cada linha determina automaticamente
+    se a borda deve ser canto, lateral ou centro.
+    """
 
-            step = 1 if y2 > y1 else -1
+    height = len(widths)
 
-            for y in range(y1, y2, step):
-                path.append((x1, y))
+    start_y = center_y - height // 2
 
+    # --------------------------------------------------------
+    # Calcula início e fim de cada linha
+    # --------------------------------------------------------
+
+    rows = []
+
+    for width in widths:
+
+        width = max(3, width)
+
+        left = center_x - width // 2
+        right = left + width - 1
+
+        rows.append((left, right))
+
+    # --------------------------------------------------------
+    # Renderiza cada linha
+    # --------------------------------------------------------
+
+    for row_index, (left, right) in enumerate(rows):
+
+        y = start_y + row_index
+
+        if not 0 <= y < MAP_ROWS:
+            continue
+
+        # ====================================================
+        # PRIMEIRA LINHA
+        # ====================================================
+
+        if row_index == 0:
+
+            for x in range(left, right + 1):
+
+                if not 0 <= x < MAP_COLS:
+                    continue
+
+                if x == left:
+                    tile = "g1"
+
+                elif x == right:
+                    tile = "g3"
+
+                else:
+                    tile = "g2"
+
+                layer[y][x] = tile
+
+            continue
+
+        # ====================================================
+        # ÚLTIMA LINHA
+        # ====================================================
+
+        if row_index == height - 1:
+
+            for x in range(left, right + 1):
+
+                if not 0 <= x < MAP_COLS:
+                    continue
+
+                if x == left:
+                    tile = "g7"
+
+                elif x == right:
+                    tile = "g9"
+
+                else:
+                    tile = "g8"
+
+                layer[y][x] = tile
+
+            continue
+
+        # ====================================================
+        # LINHAS INTERMEDIÁRIAS
+        # ====================================================
+
+        previous_left, previous_right = rows[row_index - 1]
+        next_left, next_right = rows[row_index + 1]
+
+        # ----------------------------------------------------
+        # BORDA ESQUERDA
+        # ----------------------------------------------------
+
+        # ilha está aumentando para esquerda
+        if left < previous_left:
+            left_tile = "g1"
+
+        # ilha vai diminuir na próxima linha
+        elif next_left > left:
+            left_tile = "g7"
+
+        # parede vertical
         else:
-            raise ValueError(
-                "Path segments must be horizontal or vertical."
-            )
+            left_tile = "g4"
 
-    path.append(points[-1])
+        # ----------------------------------------------------
+        # BORDA DIREITA
+        # ----------------------------------------------------
 
-    return path
+        # ilha está aumentando para direita
+        if right > previous_right:
+            right_tile = "g3"
+
+        # ilha vai diminuir na próxima linha
+        elif next_right < right:
+            right_tile = "g9"
+
+        # parede vertical
+        else:
+            right_tile = "g6"
+
+        # ----------------------------------------------------
+        # DESENHA LINHA
+        # ----------------------------------------------------
+
+        for x in range(left, right + 1):
+
+            if not 0 <= x < MAP_COLS:
+                continue
+
+            if x == left:
+                tile = left_tile
+
+            elif x == right:
+                tile = right_tile
+
+            else:
+                tile = "g5"
+
+            layer[y][x] = tile
 
 
-def draw_path(ground_map, points):
-
-    path = expand_path(points)
-
-    # desenha os tiles internos
-    for i in range(1, len(path) - 1):
-
-        previous = path[i - 1]
-        current = path[i]
-        next_point = path[i + 1]
-
-        connections = frozenset([
-            direction(current, previous),
-            direction(current, next_point)
-        ])
-
-        tile = PATH_TILES[connections]
-
-        x, y = current
-
-        ground_map[y][x] = tile
-
-    # ========================================================
-    # EXTREMIDADES
-    # ========================================================
-
-    # primeiro tile
-    first = path[0]
-    second = path[1]
-
-    first_direction = direction(first, second)
-
-    if first_direction in ("left", "right"):
-        first_tile = "f2"
-    else:
-        first_tile = "f7"
-
-    x, y = first
-    ground_map[y][x] = first_tile
-
-    # último tile
-    last = path[-1]
-    before_last = path[-2]
-
-    last_direction = direction(last, before_last)
-
-    if last_direction in ("left", "right"):
-        last_tile = "f5"
-    else:
-        last_tile = "f7"
-
-    x, y = last
-    ground_map[y][x] = last_tile
 
 
 # ============================================================
-# PATH
+# ISLAND 2
 # ============================================================
 
-PATH_POINTS = [
-    (0, 6),
-    (7, 6),
-    (7, 3),
-    (17, 3),
-    (17, 8),
-    (24, 8),
-]
-
-draw_path(
+create_organic_island(
     GROUND_MAP,
-    PATH_POINTS
+    center_x=25,
+    center_y=8,
+    widths=[
+        7,
+        11,
+        15,
+        17,
+        19,
+        19,
+        19,
+        19,
+        17,
+        15,
+        11,
+        7,
+    ]
 )
 
 
 # ============================================================
-# TREES
+# ISLAND 3
 # ============================================================
 
-OBJECT_MAP[2][2] = "t1"
-OBJECT_MAP[7][7] = "t2"
+create_organic_island(
+    GROUND_MAP,
+    center_x=13,
+    center_y=22,
+    widths=[
+        5,
+        9,
+        13,
+        15,
+        17,
+        17,
+        17,
+        17,
+        15,
+        13,
+        9,
+        5,
+    ]
+)
 
-OBJECT_MAP[8][19] = "t1"
-OBJECT_MAP[7][23] = "t2"
+
+# ============================================================
+# ISLAND 4
+# ============================================================
+
+create_organic_island(
+    GROUND_MAP,
+    center_x=37,
+    center_y=22,
+    widths=[
+        5,
+        9,
+        13,
+        15,
+        17,
+        17,
+        17,
+        17,
+        15,
+        13,
+        9,
+        5,
+    ]
+)
+
+# ============================================================
+# PONTE ENTRE ILHAS
+# ============================================================
+
+
+create_bridge(
+    OBJECT_MAP,
+    start=(21, 20),
+    end=(29, 20)
+)
+
+
+
+# ============================================================
+# subilhas
+# ============================================================
+
+# create_organic_island(
+#     DETAIL_MAP,
+#     center_x=37,
+#     center_y=22,
+#     widths=[
+#         3,
+#         7,
+#         9,
+#         11,
+#         11,
+#         11,
+#         11,
+#         9,
+#         7,
+#         3,
+#     ]
+# )
+
+# create_organic_island(
+#     DETAIL_MAP,
+#     center_x=13,
+#     center_y=22,
+#     widths=[
+#         3,
+#         7,
+#         9,
+#         11,
+#         11,
+#         11,
+#         11,
+#         9,
+#         7,
+#         3,
+#     ]
+# )
+
+# create_organic_island(
+#     DETAIL_MAP,
+#     center_x=25,
+#     center_y=8,
+#     widths=[
+#         3,
+#         7,
+#         9,
+#         11,
+#         11,
+#         11,
+#         11,
+#         9,
+#         7,
+#         3,
+#     ]
+# )
 
 
 # ============================================================
 # BUILDINGS
 # ============================================================
 
-OBJECT_MAP[3][15] = "c1"
+# Casas disponíveis:
+#
+# laranja
+# co1
+# co2
+# co3
+#
+# cinza
+# cc1
+# cc2
+# cc3
+#
+# verde
+# cv1
+# cv2
+# cv3
 
-OBJECT_MAP[10][8] = "f8"
-OBJECT_MAP[7][15] = "f9"
-OBJECT_MAP[5][19] = "f10"
 
+
+
+# Ilha 2
+OBJECT_MAP[5][25] = "cc1"
+
+
+# Ilha 3
+OBJECT_MAP[19][9] = "cv1"
+
+
+# Ilha 4
+OBJECT_MAP[19][33] = "co2"
+
+
+# ============================================================
+# OPTIONAL DETAILS
+# ============================================================
+
+# Depois podemos colocar aqui:
+#
+# pedras:
+# p1, p2, p3...
+#
+# cercas:
+# c1, c2, c3...
+#
+# folhas:
+# f1, f2, f3...
+#
+#
+# Exemplos:
+#
+# DETAIL_MAP[10][10] = "p1"
+# DETAIL_MAP[9][15] = "f1"
 
 
 # ============================================================
@@ -291,15 +533,50 @@ background = Image.new(
     (0, 0, 0, 0)
 )
 
+
+# ============================================================
+# RENDER GROUND
+# ============================================================
+
 render_layer(
     background,
     GROUND_MAP
 )
 
+
+# ============================================================
+# RENDER DETAILS
+# ============================================================
+
+render_layer(
+    background,
+    DETAIL_MAP
+)
+
+
+# ============================================================
+# RENDER PATHS
+# ============================================================
+
+render_layer(
+    background,
+    PATH_MAP
+)
+
+
+# ============================================================
+# RENDER OBJECTS
+# ============================================================
+
 render_layer(
     background,
     OBJECT_MAP
 )
+
+
+# ============================================================
+# SAVE STATIC MAP
+# ============================================================
 
 background.save(
     BASE_DIR / "map.png"
@@ -344,8 +621,10 @@ sprites = [
 # PLAYER POSITION
 # ============================================================
 
-player_col = 2
-player_row = 7
+# Primeira ilha
+
+player_col = 12
+player_row = 10
 
 player_x = player_col * TILE_SIZE
 player_y = player_row * TILE_SIZE
@@ -374,7 +653,7 @@ for sprite in sprites:
         sprite
     )
 
-    # objetos que ficam na frente do personagem
+    # elementos que ficam na frente do personagem
     render_layer(
         img,
         TOP_MAP
@@ -392,7 +671,8 @@ frames[0].save(
     save_all=True,
     append_images=frames[1:],
     duration=180,
-    loop=0
+    loop=0,
+    disposal=2
 )
 
 
