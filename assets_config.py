@@ -31,6 +31,10 @@ variados = Image.open(
     "assets/variados.png"
 ).convert("RGBA")
 
+Ilhas = Image.open(
+    "assets/ilhas.png"
+).convert("RGBA")
+
 
 
 # =========================
@@ -44,6 +48,23 @@ for row in range(1, 3):
         assets.add(Tile(
             f"g{n}",
             grama,
+            col=col,
+            row=row
+        ))
+        n += 1
+
+
+# =========================
+# Ilands
+# =========================
+
+n = 1
+
+for row in range(0, 2):
+    for col in range(1, 3):
+        assets.add(Tile(
+            f"g{n}",
+            Ilhas,
             col=col,
             row=row
         ))
