@@ -15,27 +15,34 @@ def get_top_repositories(limit=3):
         }
     )
 
-    response.raise_for_status()
+    # API indisponível / rate limit
+    if response.status_code != 200:
+
+        print(
+            f"GitHub API error: "
+            f"{response.status_code}"
+        )
+
+        return [
+            "github-world",
+            "Carcinoma_Segmentation",
+            "Repository"
+        ][:limit]
 
     repos = response.json()
 
-    # remove forks
     repos = [
         repo
         for repo in repos
         if not repo["fork"]
     ]
 
-    # ordena pelos atualizados mais recentemente
     repos.sort(
         key=lambda repo: repo["updated_at"],
         reverse=True
     )
 
-    # pega apenas os nomes
-    top_repos = [
+    return [
         repo["name"]
         for repo in repos[:limit]
     ]
-
-    return top_repos

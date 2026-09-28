@@ -53,6 +53,92 @@ TOP_MAP = [
 
 
 # ============================================================
+# mapa
+# ============================================================
+
+
+def show_minimap(
+    layer,
+    lines,
+    asset_name="m1",
+    width=120,
+    margin=10,
+    font_size=8,
+    text_x=15,
+    text_y=30,
+    line_spacing=12
+):
+    """
+    Mostra o mapa com informações escritas nele.
+
+    text_x / text_y:
+        posição do texto dentro do asset ORIGINAL.
+
+    line_spacing:
+        distância entre as linhas.
+    """
+
+    asset = assets.get(asset_name)
+
+    # cópia do mapa original
+    minimap = asset.image.copy()
+
+    # fonte
+    font = ImageFont.truetype(
+        BASE_DIR / "assets/fonts/pixel.ttf",
+        font_size
+    )
+
+    draw = ImageDraw.Draw(minimap)
+
+    # ========================================================
+    # ESCREVE INFORMAÇÕES
+    # ========================================================
+
+    current_y = text_y
+
+    for line in lines:
+
+        draw.text(
+            (text_x, current_y),
+            line,
+            font=font,
+            fill=(0, 0, 0, 255)
+        )
+
+        current_y += line_spacing
+
+    # ========================================================
+    # REDIMENSIONA MAPA + TEXTO
+    # ========================================================
+
+    ratio = width / minimap.width
+
+    height = int(
+        minimap.height * ratio
+    )
+
+    minimap = minimap.resize(
+        (width, height),
+        Image.Resampling.NEAREST
+    )
+
+    # ========================================================
+    # POSIÇÃO NA TELA
+    # ========================================================
+
+    x = layer.width - minimap.width - margin - 80
+    y = margin - 20
+
+    layer.paste(
+        minimap,
+        (x, y),
+        minimap
+    )
+
+
+
+# ============================================================
 # BRIDGE SYSTEM
 # ============================================================
 
@@ -744,6 +830,22 @@ create_repo_tag(
     y=15,
     font_size=10,
     offset_y= -65
+)
+
+# ============================================================
+# render map
+# ============================================================
+
+show_minimap(
+    background,
+    lines=[
+        "NevesJulio",
+        "Python: 65%",
+        "C++: 20%"
+    ],
+    text_x=30,
+    text_y=45,
+    line_spacing=14
 )
 
 

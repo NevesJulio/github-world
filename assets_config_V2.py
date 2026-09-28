@@ -9,6 +9,11 @@ Ilhas = Image.open(
     "assets/Ilhas.png"
 ).convert("RGBA")
 
+mapa = Image.open(
+    "assets/mapa.png"
+).convert("RGBA")
+
+
 
 # =========================
 # GRASS / ISLAND
@@ -301,4 +306,18 @@ assets.add(Tile(
     row=2,
     width=3,
     height=2
+))
+
+
+# =========================
+# mapa
+# =========================
+
+assets.add(Tile(
+    "m1",
+    mapa,
+    col=50,
+    row=3,
+    width = 9,
+    height=16
 ))
