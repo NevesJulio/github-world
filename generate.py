@@ -62,11 +62,11 @@ def show_minimap(
     lines,
     asset_name="m1",
     width=120,
-    margin=10,
-    font_size=8,
+    margin=15,
+    font_size=15,
     text_x=15,
     text_y=30,
-    line_spacing=12
+    line_spacing=50
 ):
     """
     Mostra o mapa com informações escritas nele.
@@ -845,7 +845,7 @@ show_minimap(
     ],
     text_x=30,
     text_y=45,
-    line_spacing=14
+    line_spacing=20
 )
 
 
