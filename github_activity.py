@@ -1,10 +1,9 @@
 import requests
-from collections import defaultdict
 
 USERNAME = "NevesJulio"
 
 
-def get_activity():
+def get_top_repositories(limit=3):
 
     url = f"https://api.github.com/users/{USERNAME}/repos"
 
@@ -20,42 +19,23 @@ def get_activity():
 
     repos = response.json()
 
-    languages = defaultdict(int)
+    # remove forks
+    repos = [
+        repo
+        for repo in repos
+        if not repo["fork"]
+    ]
 
-    for repo in repos:
-
-        # Ignora forks
-        if repo["fork"]:
-            continue
-
-        language = repo["language"]
-
-        if language:
-            languages[language] += 1
-
-    total = sum(languages.values())
-
-    if total == 0:
-        return {
-            "destination": "Python",
-            "languages": {}
-        }
-
-    percentages = {
-        language: count / total
-        for language, count in languages.items()
-    }
-
-    destination = max(
-        percentages,
-        key=percentages.get
+    # ordena pelos atualizados mais recentemente
+    repos.sort(
+        key=lambda repo: repo["updated_at"],
+        reverse=True
     )
 
-    return {
-        "destination": destination,
-        "languages": percentages
-    }
+    # pega apenas os nomes
+    top_repos = [
+        repo["name"]
+        for repo in repos[:limit]
+    ]
 
-
-if __name__ == "__main__":
-    print(get_activity())
+    return top_repos

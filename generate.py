@@ -2,11 +2,16 @@ from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 import random
 from assets_config_V2 import assets
+from github_activity import get_top_repositories
 
 
 BASE_DIR = Path(__file__).resolve().parent
 
 TILE_SIZE = 16
+
+top_repos = get_top_repositories(3)
+
+print(top_repos)
 
 
 # ============================================================
@@ -100,10 +105,10 @@ def create_repo_tag(
     repo_name,
     center_x,
     y,
-    font_size=25,
-    scale=3,
+    font_size=8,
+    scale=4,
     opacity=0.7,
-    offset_y=-10
+    offset_y=20
 ):
     """
     Cria uma tag com o nome do repositório.
@@ -516,8 +521,8 @@ def create_organic_island(
 
             x, y = random.choice(valid_positions)
 
-            # você possui p1 até p10
-            rock = f"p{random.randint(1, 10)}"
+            # você possui r1 até r10
+            rock = f"r{random.randint(1, 10)}"
 
             detail_layer[y][x] = rock
 
@@ -694,29 +699,29 @@ render_layer(
 
 create_repo_tag(
     background,
-    repo_name="github-world",
+    repo_name=top_repos[0],
     center_x=25,
     y=1,
-    font_size=12,
-    offset_y=-15
+    font_size=10,
+    offset_y= -65
 )
 
 create_repo_tag(
     background,
-    repo_name="repo-2",
+    repo_name=top_repos[1],
     center_x=13,
     y=15,
-    font_size=12,
-    offset_y=-15
+    font_size=10,
+    offset_y= -65
 )
 
 create_repo_tag(
     background,
-    repo_name="repo-3",
+    repo_name=top_repos[2],
     center_x=37,
     y=15,
-    font_size=12,
-    offset_y=-15
+    font_size=10,
+    offset_y= -65
 )
 
 

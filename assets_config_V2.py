@@ -113,7 +113,7 @@ n = 1
 for row in range(0, 2):
     for col in range(10, 16):
         assets.add(Tile(
-            f"p{n}",
+            f"r{n}",
             Ilhas,
             col=col,
             row=row
