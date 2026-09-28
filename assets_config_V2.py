@@ -110,8 +110,8 @@ for row in range(0, 9):
 
 n = 1
 
-for row in range(0, 12):
-    for col in range(4, 15):
+for row in range(0, 2):
+    for col in range(10, 16):
         assets.add(Tile(
             f"p{n}",
             Ilhas,
@@ -143,8 +143,8 @@ for row in range(5, 13):
 
 n = 1
 
-for row in range(5, 0):
-    for col in range(9, 1):
+for row in range(0, 2):
+    for col in range(5, 10):
         assets.add(Tile(
             f"f{n}",
             Ilhas,

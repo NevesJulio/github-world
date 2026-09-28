@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
-
+import random
 from assets_config_V2 import assets
 
 
@@ -236,11 +236,13 @@ def create_repo_tag(
 def create_organic_island(
     layer,
     object_layer,
+    detail_layer,
     center_x,
     center_y,
     width,
     height,
-    entrance=True
+    entrance=True,
+    decorate=True
 ):
     """
     Cria uma ilha no formato:
@@ -441,47 +443,138 @@ def create_organic_island(
         ):
             object_layer[entrance_y][entrance_x] = "x3"
 
+    # ========================================================
+    # DECORAÇÃO DA ILHA
+    # ========================================================
 
-# ============================================================
-# ISLAND 2
-# ============================================================
+    if decorate:
+
+        # quantidade baseada no tamanho da ilha
+        island_area = width * height
+
+        num_rocks = max(10, island_area // 35)
+        num_leaves = max(25, island_area // 25)
+
+        # ----------------------------------------------------
+        # posições válidas
+        # ----------------------------------------------------
+
+        valid_positions = []
+
+        for row_index, (left, right) in enumerate(rows):
+
+            y = start_y + row_index
+
+            if not 0 <= y < MAP_ROWS:
+                continue
+
+            # evita colocar decoração exatamente na borda
+            safe_left = left + 2
+            safe_right = right - 2
+
+            for x in range(safe_left, safe_right + 1):
+
+                if not 0 <= x < MAP_COLS:
+                    continue
+
+                valid_positions.append(
+                    (x, y)
+                )
+
+        # ----------------------------------------------------
+        # evita entrada
+        # ----------------------------------------------------
+
+        entrance_positions = set()
+
+        if entrance:
+
+            entrance_positions.update({
+                (entrance_x, entrance_y),
+                (entrance_x + 1, entrance_y),
+                (entrance_x + 2, entrance_y),
+
+                (entrance_x, entrance_y + 1),
+                (entrance_x + 1, entrance_y + 1),
+                (entrance_x + 2, entrance_y + 1),
+            })
+
+        valid_positions = [
+            position
+            for position in valid_positions
+            if position not in entrance_positions
+        ]
+
+        # ----------------------------------------------------
+        # PEDRAS
+        # ----------------------------------------------------
+
+        for _ in range(num_rocks):
+
+            if not valid_positions:
+                break
+
+            x, y = random.choice(valid_positions)
+
+            # você possui p1 até p10
+            rock = f"p{random.randint(1, 10)}"
+
+            detail_layer[y][x] = rock
+
+            valid_positions.remove((x, y))
+
+        # ----------------------------------------------------
+        # FOLHAS
+        # ----------------------------------------------------
+
+        for _ in range(num_leaves):
+
+            if not valid_positions:
+                break
+
+            x, y = random.choice(valid_positions)
+
+            # range(0, 1) = 2 linhas
+            # range(5, 9) = 5 colunas
+            # portanto 40 folhas
+            leaf = f"f{random.randint(1, 10)}"
+
+            detail_layer[y][x] = leaf
+
+            valid_positions.remove((x, y))
+
+
 
 create_organic_island(
     GROUND_MAP,
     OBJECT_MAP,
+    DETAIL_MAP,
     center_x=25,
     center_y=8,
     width=19,
     height=12
 )
 
-
-# ============================================================
-# ISLAND 3
-# ============================================================
-
 create_organic_island(
     GROUND_MAP,
     OBJECT_MAP,
+    DETAIL_MAP,
     center_x=13,
     center_y=22,
     width=17,
     height=12
 )
 
-
-# ============================================================
-# ISLAND 4
-# ============================================================
-
 create_organic_island(
     GROUND_MAP,
     OBJECT_MAP,
+    DETAIL_MAP,
     center_x=37,
     center_y=22,
     width=17,
     height=12
 )
+
 
 
 # ============================================================
@@ -674,8 +767,8 @@ sprites = [
 # PLAYER POSITION
 # ============================================================
 
-player_col = 12
-player_row = 10
+player_col = 20
+player_row = 8
 
 player_x = player_col * TILE_SIZE
 player_y = player_row * TILE_SIZE
