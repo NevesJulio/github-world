@@ -131,42 +131,94 @@ def create_bridge(
 
 def create_organic_island(
     layer,
+    object_layer,
     center_x,
     center_y,
-    widths
+    width,
+    height,
+    entrance=True
 ):
     """
-    Cria uma ilha orgânica usando:
+    Cria uma ilha no formato:
 
-        g1  g2  g3
-        g4  g5  g6
-        g7  g8  g9
+            ╭───────╮
+        ╭───         ───╮
+        │               │
+        │               │
+        ╰───         ───╯
+            ╰───────╯
 
-    A largura de cada linha determina automaticamente
-    se a borda deve ser canto, lateral ou centro.
+    width:
+        largura máxima da ilha.
+
+    height:
+        altura total da ilha.
+
+    entrance:
+        coloca automaticamente x3 centralizado
+        na frente da ilha.
     """
 
-    height = len(widths)
+    # largura mínima
+    width = max(7, width)
+
+    # altura mínima
+    height = max(6, height)
+
+    # --------------------------------------------------------
+    # CONFIGURAÇÃO DO FORMATO
+    # --------------------------------------------------------
+
+    # quanto a primeira/última linha ficam recuadas
+    top_inset = 4
+
+    # largura da região principal
+    full_width = width
+
+    # largura da parte superior/inferior
+    narrow_width = width - (top_inset * 2)
+
+    # --------------------------------------------------------
+    # CRIA AS LARGURAS DAS LINHAS
+    # --------------------------------------------------------
+
+    widths = []
+
+    # topo
+    widths.append(narrow_width)
+
+    # transição superior
+    widths.append(full_width)
+
+    # parte central
+    middle_rows = height - 4
+
+    for _ in range(middle_rows):
+        widths.append(full_width)
+
+    # transição inferior
+    widths.append(full_width)
+
+    # base
+    widths.append(narrow_width)
+
+    # --------------------------------------------------------
+    # POSIÇÕES
+    # --------------------------------------------------------
 
     start_y = center_y - height // 2
 
-    # --------------------------------------------------------
-    # Calcula início e fim de cada linha
-    # --------------------------------------------------------
-
     rows = []
 
-    for width in widths:
+    for row_width in widths:
 
-        width = max(3, width)
-
-        left = center_x - width // 2
-        right = left + width - 1
+        left = center_x - row_width // 2
+        right = left + row_width - 1
 
         rows.append((left, right))
 
     # --------------------------------------------------------
-    # Renderiza cada linha
+    # DESENHA A ILHA
     # --------------------------------------------------------
 
     for row_index, (left, right) in enumerate(rows):
@@ -177,7 +229,7 @@ def create_organic_island(
             continue
 
         # ====================================================
-        # PRIMEIRA LINHA
+        # TOPO
         # ====================================================
 
         if row_index == 0:
@@ -198,13 +250,33 @@ def create_organic_island(
 
                 layer[y][x] = tile
 
-            continue
-
         # ====================================================
-        # ÚLTIMA LINHA
+        # TRANSIÇÃO SUPERIOR
         # ====================================================
 
-        if row_index == height - 1:
+        elif row_index == 1:
+
+            for x in range(left, right + 1):
+
+                if not 0 <= x < MAP_COLS:
+                    continue
+
+                if x == left:
+                    tile = "g1"
+
+                elif x == right:
+                    tile = "g3"
+
+                else:
+                    tile = "g5"
+
+                layer[y][x] = tile
+
+        # ====================================================
+        # BASE
+        # ====================================================
+
+        elif row_index == height - 1:
 
             for x in range(left, right + 1):
 
@@ -222,66 +294,70 @@ def create_organic_island(
 
                 layer[y][x] = tile
 
-            continue
-
         # ====================================================
-        # LINHAS INTERMEDIÁRIAS
+        # TRANSIÇÃO INFERIOR
         # ====================================================
 
-        previous_left, previous_right = rows[row_index - 1]
-        next_left, next_right = rows[row_index + 1]
+        elif row_index == height - 2:
 
-        # ----------------------------------------------------
-        # BORDA ESQUERDA
-        # ----------------------------------------------------
+            for x in range(left, right + 1):
 
-        # ilha está aumentando para esquerda
-        if left < previous_left:
-            left_tile = "g1"
+                if not 0 <= x < MAP_COLS:
+                    continue
 
-        # ilha vai diminuir na próxima linha
-        elif next_left > left:
-            left_tile = "g7"
+                if x == left:
+                    tile = "g7"
 
-        # parede vertical
+                elif x == right:
+                    tile = "g9"
+
+                else:
+                    tile = "g5"
+
+                layer[y][x] = tile
+
+        # ====================================================
+        # CENTRO
+        # ====================================================
+
         else:
-            left_tile = "g4"
 
-        # ----------------------------------------------------
-        # BORDA DIREITA
-        # ----------------------------------------------------
+            for x in range(left, right + 1):
 
-        # ilha está aumentando para direita
-        if right > previous_right:
-            right_tile = "g3"
+                if not 0 <= x < MAP_COLS:
+                    continue
 
-        # ilha vai diminuir na próxima linha
-        elif next_right < right:
-            right_tile = "g9"
+                if x == left:
+                    tile = "g4"
 
-        # parede vertical
-        else:
-            right_tile = "g6"
+                elif x == right:
+                    tile = "g6"
 
-        # ----------------------------------------------------
-        # DESENHA LINHA
-        # ----------------------------------------------------
+                else:
+                    tile = "g5"
 
-        for x in range(left, right + 1):
+                layer[y][x] = tile
 
-            if not 0 <= x < MAP_COLS:
-                continue
+    # ========================================================
+    # ENTRADA
+    # ========================================================
 
-            if x == left:
-                tile = left_tile
+    if entrance:
 
-            elif x == right:
-                tile = right_tile
+        bottom_y = start_y + height - 1
 
-            else:
-                tile = "g5"
+        # x3 possui largura de 3 tiles.
+        # -1 centraliza o asset em center_x.
+        entrance_x = center_x - 1
 
-            layer[y][x] = tile
+        # sobrepõe a entrada à parte inferior da ilha
+        entrance_y = bottom_y - 1
+
+        if (
+            0 <= entrance_x < MAP_COLS
+            and 0 <= entrance_y < MAP_ROWS
+        ):
+            object_layer[entrance_y][entrance_x] = "x3"
 
 
 
@@ -290,26 +366,15 @@ def create_organic_island(
 # ISLAND 2
 # ============================================================
 
+
 create_organic_island(
     GROUND_MAP,
+    OBJECT_MAP,
     center_x=25,
     center_y=8,
-    widths=[
-        7,
-        11,
-        15,
-        17,
-        19,
-        19,
-        19,
-        19,
-        17,
-        15,
-        11,
-        7,
-    ]
+    width=19,
+    height=12
 )
-
 
 # ============================================================
 # ISLAND 3
@@ -317,24 +382,12 @@ create_organic_island(
 
 create_organic_island(
     GROUND_MAP,
+    OBJECT_MAP,
     center_x=13,
     center_y=22,
-    widths=[
-        5,
-        9,
-        13,
-        15,
-        17,
-        17,
-        17,
-        17,
-        15,
-        13,
-        9,
-        5,
-    ]
+    width=17,
+    height=12
 )
-
 
 # ============================================================
 # ISLAND 4
@@ -342,23 +395,14 @@ create_organic_island(
 
 create_organic_island(
     GROUND_MAP,
+    OBJECT_MAP,
     center_x=37,
     center_y=22,
-    widths=[
-        5,
-        9,
-        13,
-        15,
-        17,
-        17,
-        17,
-        17,
-        15,
-        13,
-        9,
-        5,
-    ]
+    width=17,
+    height=12
 )
+
+
 
 # ============================================================
 # PONTE ENTRE ILHAS

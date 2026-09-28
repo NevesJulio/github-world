@@ -256,7 +256,7 @@ assets.add(Tile(
 
 
 # =========================
-# casas pontes
+# pontes
 # =========================
 
 
@@ -286,4 +286,19 @@ assets.add(Tile(
     row=12,
     width=1,
     height=3
+))
+
+
+
+# =========================
+# entrada
+# =========================
+
+assets.add(Tile(
+    "x3",
+    Ilhas,
+    col=5,
+    row=2,
+    width=3,
+    height=2
 ))
