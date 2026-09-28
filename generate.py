@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 
 from assets_config_V2 import assets
@@ -51,7 +51,6 @@ TOP_MAP = [
 # BRIDGE SYSTEM
 # ============================================================
 
-
 def create_bridge(
     layer,
     start,
@@ -63,29 +62,19 @@ def create_bridge(
     p1 = início
     p2 = meio
     p3 = final
-
-    start e end usam:
-        (col, row)
-
-    Exemplo:
-        start = (10, 8)
-        end   = (18, 8)
     """
 
     start_x, start_y = start
     end_x, end_y = end
 
-    # Por enquanto somente ponte horizontal
     if start_y != end_y:
         raise ValueError(
             "Bridge must be horizontal."
         )
 
-    # garante que start está à esquerda
     if start_x > end_x:
         start_x, end_x = end_x, start_x
 
-    # precisa existir espaço para começo e fim
     if end_x - start_x < 2:
         raise ValueError(
             "Bridge must be at least 3 tiles long."
@@ -102,31 +91,146 @@ def create_bridge(
     layer[start_y][end_x] = "p3"
 
 
+# ============================================================
+# REPOSITORY TAG
+# ============================================================
+
+def create_repo_tag(
+    layer,
+    repo_name,
+    center_x,
+    y,
+    font_size=25,
+    scale=3,
+    opacity=0.7,
+    offset_y=-10
+):
+    """
+    Cria uma tag com o nome do repositório.
+
+    scale:
+        tamanho da tag (1, 2, 3...)
+
+    opacity:
+        opacidade da tag (0.0 até 1.0)
+    """
+
+    # ========================================================
+    # CARREGA TAG
+    # ========================================================
+
+    tag = Image.open(
+        BASE_DIR / "assets/tag.png"
+    ).convert("RGBA")
+
+
+    # ========================================================
+    # AUMENTA TAG
+    # ========================================================
+
+    tag = tag.resize(
+        (
+            tag.width * scale,
+            tag.height * scale
+        ),
+        Image.Resampling.NEAREST
+    )
+
+
+    # ========================================================
+    # APLICA TRANSPARÊNCIA NA TAG
+    # ========================================================
+
+    alpha = tag.getchannel("A")
+
+    alpha = alpha.point(
+        lambda p: int(p * opacity)
+    )
+
+    tag.putalpha(alpha)
+
+
+    # ========================================================
+    # FONTE
+    # ========================================================
+
+    font = ImageFont.truetype(
+        BASE_DIR / "assets/fonts/pixel.ttf",
+        font_size
+    )
+
+
+    # ========================================================
+    # TEXTO
+    # ========================================================
+
+    draw = ImageDraw.Draw(tag)
+
+    bbox = draw.textbbox(
+        (0, 0),
+        repo_name,
+        font=font
+    )
+
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    text_x = (
+        tag.width - text_width
+    ) // 2
+
+    text_y = (
+        (tag.height - text_height) // 2
+        - bbox[1]
+    )
+
+
+    # ========================================================
+    # ESCREVE TEXTO
+    # ========================================================
+
+    draw.text(
+        (text_x, text_y),
+        repo_name,
+        font=font,
+
+        # texto continua totalmente visível
+        fill=(0, 0, 0, 255)
+    )
+
+
+    # ========================================================
+    # POSIÇÃO NO MAPA
+    # ========================================================
+
+    x = (
+        center_x * TILE_SIZE
+        - tag.width // 2
+    )
+
+    pixel_y = y * TILE_SIZE + offset_y
+
+
+    # ========================================================
+    # DESENHA
+    # ========================================================
+
+    layer.paste(
+        tag,
+        (x, pixel_y),
+        tag
+    )
 
 
 # ============================================================
 # ISLAND SYSTEM
 # ============================================================
 
-# Estrutura lógica dos tiles:
+# Estrutura lógica:
 #
 # g1  g2  g3
 # g4  g5  g6
 # g7  g8  g9
-#
-# g1 = canto superior esquerdo
-# g2 = borda superior
-# g3 = canto superior direito
-#
-# g4 = borda esquerda
-# g5 = centro
-# g6 = borda direita
-#
-# g7 = canto inferior esquerdo
-# g8 = borda inferior
-# g9 = canto inferior direito
-
-
 
 
 def create_organic_island(
@@ -147,40 +251,20 @@ def create_organic_island(
         │               │
         ╰───         ───╯
             ╰───────╯
-
-    width:
-        largura máxima da ilha.
-
-    height:
-        altura total da ilha.
-
-    entrance:
-        coloca automaticamente x3 centralizado
-        na frente da ilha.
     """
 
-    # largura mínima
     width = max(7, width)
-
-    # altura mínima
     height = max(6, height)
 
-    # --------------------------------------------------------
-    # CONFIGURAÇÃO DO FORMATO
-    # --------------------------------------------------------
-
-    # quanto a primeira/última linha ficam recuadas
+    # quanto topo/base ficam recuados
     top_inset = 4
 
-    # largura da região principal
     full_width = width
-
-    # largura da parte superior/inferior
     narrow_width = width - (top_inset * 2)
 
-    # --------------------------------------------------------
-    # CRIA AS LARGURAS DAS LINHAS
-    # --------------------------------------------------------
+    # ========================================================
+    # DEFINE FORMATO
+    # ========================================================
 
     widths = []
 
@@ -190,7 +274,7 @@ def create_organic_island(
     # transição superior
     widths.append(full_width)
 
-    # parte central
+    # centro
     middle_rows = height - 4
 
     for _ in range(middle_rows):
@@ -202,9 +286,9 @@ def create_organic_island(
     # base
     widths.append(narrow_width)
 
-    # --------------------------------------------------------
-    # POSIÇÕES
-    # --------------------------------------------------------
+    # ========================================================
+    # CALCULA POSIÇÕES
+    # ========================================================
 
     start_y = center_y - height // 2
 
@@ -215,11 +299,13 @@ def create_organic_island(
         left = center_x - row_width // 2
         right = left + row_width - 1
 
-        rows.append((left, right))
+        rows.append(
+            (left, right)
+        )
 
-    # --------------------------------------------------------
-    # DESENHA A ILHA
-    # --------------------------------------------------------
+    # ========================================================
+    # DESENHA ILHA
+    # ========================================================
 
     for row_index, (left, right) in enumerate(rows):
 
@@ -346,11 +432,7 @@ def create_organic_island(
 
         bottom_y = start_y + height - 1
 
-        # x3 possui largura de 3 tiles.
-        # -1 centraliza o asset em center_x.
         entrance_x = center_x - 1
-
-        # sobrepõe a entrada à parte inferior da ilha
         entrance_y = bottom_y - 1
 
         if (
@@ -360,12 +442,9 @@ def create_organic_island(
             object_layer[entrance_y][entrance_x] = "x3"
 
 
-
-
 # ============================================================
 # ISLAND 2
 # ============================================================
-
 
 create_organic_island(
     GROUND_MAP,
@@ -375,6 +454,7 @@ create_organic_island(
     width=19,
     height=12
 )
+
 
 # ============================================================
 # ISLAND 3
@@ -388,6 +468,7 @@ create_organic_island(
     width=17,
     height=12
 )
+
 
 # ============================================================
 # ISLAND 4
@@ -403,11 +484,9 @@ create_organic_island(
 )
 
 
-
 # ============================================================
-# PONTE ENTRE ILHAS
+# BRIDGE BETWEEN ISLANDS
 # ============================================================
-
 
 create_bridge(
     OBJECT_MAP,
@@ -416,122 +495,18 @@ create_bridge(
 )
 
 
-
-# ============================================================
-# subilhas
-# ============================================================
-
-# create_organic_island(
-#     DETAIL_MAP,
-#     center_x=37,
-#     center_y=22,
-#     widths=[
-#         3,
-#         7,
-#         9,
-#         11,
-#         11,
-#         11,
-#         11,
-#         9,
-#         7,
-#         3,
-#     ]
-# )
-
-# create_organic_island(
-#     DETAIL_MAP,
-#     center_x=13,
-#     center_y=22,
-#     widths=[
-#         3,
-#         7,
-#         9,
-#         11,
-#         11,
-#         11,
-#         11,
-#         9,
-#         7,
-#         3,
-#     ]
-# )
-
-# create_organic_island(
-#     DETAIL_MAP,
-#     center_x=25,
-#     center_y=8,
-#     widths=[
-#         3,
-#         7,
-#         9,
-#         11,
-#         11,
-#         11,
-#         11,
-#         9,
-#         7,
-#         3,
-#     ]
-# )
-
-
 # ============================================================
 # BUILDINGS
 # ============================================================
 
-# Casas disponíveis:
-#
-# laranja
-# co1
-# co2
-# co3
-#
-# cinza
-# cc1
-# cc2
-# cc3
-#
-# verde
-# cv1
-# cv2
-# cv3
-
-
-
-
 # Ilha 2
 OBJECT_MAP[5][25] = "cc1"
-
 
 # Ilha 3
 OBJECT_MAP[19][9] = "cv1"
 
-
 # Ilha 4
 OBJECT_MAP[19][33] = "co2"
-
-
-# ============================================================
-# OPTIONAL DETAILS
-# ============================================================
-
-# Depois podemos colocar aqui:
-#
-# pedras:
-# p1, p2, p3...
-#
-# cercas:
-# c1, c2, c3...
-#
-# folhas:
-# f1, f2, f3...
-#
-#
-# Exemplos:
-#
-# DETAIL_MAP[10][10] = "p1"
-# DETAIL_MAP[9][15] = "f1"
 
 
 # ============================================================
@@ -547,7 +522,9 @@ def render_layer(canvas, layer):
             if asset_name is None:
                 continue
 
-            asset = assets.get(asset_name)
+            asset = assets.get(
+                asset_name
+            )
 
             x = col * TILE_SIZE
             y = row * TILE_SIZE
@@ -619,6 +596,38 @@ render_layer(
 
 
 # ============================================================
+# REPOSITORY TAGS
+# ============================================================
+
+create_repo_tag(
+    background,
+    repo_name="github-world",
+    center_x=25,
+    y=1,
+    font_size=12,
+    offset_y=-15
+)
+
+create_repo_tag(
+    background,
+    repo_name="repo-2",
+    center_x=13,
+    y=15,
+    font_size=12,
+    offset_y=-15
+)
+
+create_repo_tag(
+    background,
+    repo_name="repo-3",
+    center_x=37,
+    y=15,
+    font_size=12,
+    offset_y=-15
+)
+
+
+# ============================================================
 # SAVE STATIC MAP
 # ============================================================
 
@@ -664,8 +673,6 @@ sprites = [
 # ============================================================
 # PLAYER POSITION
 # ============================================================
-
-# Primeira ilha
 
 player_col = 12
 player_row = 10
