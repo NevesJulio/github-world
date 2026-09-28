@@ -5,6 +5,29 @@ from tiles import Tile, AssetManager
 assets = AssetManager()
 
 
+# =========================
+# ASSET GLOSSARY
+# =========================
+
+ASSET_GLOSSARY = {
+    "g": "Grass / tiles que formam as ilhas",
+    "e": "Earth / terra",
+    "r": "Rocks / pedras",
+    "c": "Fences / cercas",
+    "f": "Foliage / folhas e vegetação",
+
+    "co": "Orange houses / casas laranja",
+    "cc": "Gray houses / casas cinza",
+    "cv": "Green houses / casas verdes",
+
+    "p": "Bridges / pontes",
+    "x": "Special tiles / entradas e outros elementos especiais",
+
+    "m": "Map / elementos do mapa ou minimapa",
+}
+
+
+
 Ilhas = Image.open(
     "assets/Ilhas.png"
 ).convert("RGBA")
@@ -264,7 +287,6 @@ assets.add(Tile(
 # pontes
 # =========================
 
-
 assets.add(Tile(
     "p1",
     Ilhas,
@@ -293,6 +315,34 @@ assets.add(Tile(
     height=3
 ))
 
+assets.add(Tile(
+    "p4",
+    Ilhas,
+    col=10,
+    row=13,
+    width=2,
+    height=1
+))
+
+assets.add(Tile(
+    "p5",
+    Ilhas,
+    col=10,
+    row=14,
+    width=2,
+    height=1
+))
+
+assets.add(Tile(
+    "p6",
+    Ilhas,
+    col=10,
+    row=15,
+    width=2,
+    height=1
+))
+
+
 
 
 # =========================
@@ -314,10 +364,262 @@ assets.add(Tile(
 # =========================
 
 assets.add(Tile(
-    "m1",
+    "y1",
     mapa,
     col=50,
     row=3,
     width = 9,
     height=16
 ))
+
+
+# =========================
+# barris
+# =========================
+
+#caixa1
+assets.add(Tile(
+    "m1",
+    Ilhas,
+    col=5,
+    row=8,
+    width = 1,
+    height=1
+))
+
+#caixa2
+assets.add(Tile(
+    "m2",
+    Ilhas,
+    col=5,
+    row=9,
+    width = 1,
+    height=1
+))
+
+#caixa3
+assets.add(Tile(
+    "m3",
+    Ilhas,
+    col=5,
+    row=10,
+    width = 1,
+    height=1
+))
+
+#caixa4
+assets.add(Tile(
+    "m4",
+    Ilhas,
+    col=5,
+    row=11,
+    width = 1,
+    height=1
+))
+
+#caixa grande
+assets.add(Tile(
+    "m5",
+    Ilhas,
+    col=6,
+    row=8,
+    width = 2,
+    height=2
+))
+
+#barril grande
+assets.add(Tile(
+    "m6",
+    Ilhas,
+    col=8,
+    row=8,
+    width = 2,
+    height=2
+))
+
+#caixa pequena
+assets.add(Tile(
+    "m7",
+    Ilhas,
+    col=10,
+    row=8,
+    width = 1,
+    height=2
+))
+
+#caixa media
+assets.add(Tile(
+    "m8",
+    Ilhas,
+    col=11,
+    row=8,
+    width = 1,
+    height=2
+))
+
+#barril media
+assets.add(Tile(
+    "m9",
+    Ilhas,
+    col=11,
+    row=10,
+    width = 1,
+    height=2
+))
+
+ 
+#fonte cheia 1
+assets.add(Tile(
+    "m11",
+    Ilhas,
+    col=14,
+    row=7,
+    width = 1,
+    height=2
+))
+
+#fonte cheia 2
+assets.add(Tile(
+    "m12",
+    Ilhas,
+    col=15,
+    row=7,
+    width = 1,
+    height=2
+))
+
+
+#fonte vazia 1
+assets.add(Tile(
+    "m13",
+    Ilhas,
+    col=14,
+    row=8,
+    width = 1,
+    height=2
+))
+
+#fonte vazia 2
+assets.add(Tile(
+    "m14",
+    Ilhas,
+    col=15,
+    row=8,
+    width = 1,
+    height=2
+))
+
+#banco pequeno
+assets.add(Tile(
+    "m15",
+    Ilhas,
+    col=13,
+    row=6,
+    width = 1,
+    height=1
+))
+
+#banco grande
+assets.add(Tile(
+    "m16",
+    Ilhas,
+    col=13,
+    row=7,
+    width = 1,
+    height=1
+))
+
+#varal
+assets.add(Tile(
+    "m17",
+    Ilhas,
+    col=12,
+    row=8,
+    width = 2,
+    height=1
+))
+
+#fonte grande
+assets.add(Tile(
+    "m18",
+    Ilhas,
+    col=14,
+    row=2,
+    width = 2,
+    height=3
+))
+
+#fonte média
+assets.add(Tile(
+    "m19",
+    Ilhas,
+    col=14,
+    row=5,
+    width = 2,
+    height=2
+))
+
+#banco vertical
+assets.add(Tile(
+    "m20",
+    Ilhas,
+    col=10,
+    row=6,
+    width = 1,
+    height=2
+))
+
+#banco horizontal
+assets.add(Tile(
+    "m21",
+    Ilhas,
+    col=11,
+    row=6,
+    width = 2,
+    height=1
+))
+
+
+n = 22
+
+# placas
+for row in range(4, 6):
+    for col in range(10, 13):
+        assets.add(Tile(
+            f"m{n}",
+            Ilhas,
+            col=col,
+            row=row
+        ))
+        n += 1
+
+
+
+DECORATION_GROUPS = {
+    # Trabalho / atividade recente
+    "activity": [
+        "m1", "m2", "m3", "m4",
+        "m5", "m6", "m7", "m8", "m9"
+    ],
+
+    # Saúde / manutenção do projeto
+    "health_full": [
+        "m11", "m12", "m18", "m19"
+    ],
+
+    "health_empty": [
+        "m13", "m14"
+    ],
+
+    # Elementos ambientais
+    "ambient": [
+        "m15", "m16", "m17",
+        "m20", "m21"
+    ],
+
+    # Informações / marcos
+    "signs": [
+        "m22", "m23", "m24",
+        "m25", "m26", "m27"
+    ]
+}

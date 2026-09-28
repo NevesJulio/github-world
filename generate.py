@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 import random
-from assets_config_V2 import assets
+from assets_config_V2 import assets, DECORATION_GROUPS
 from github_activity import get_top_repositories
 
 
@@ -53,6 +53,38 @@ TOP_MAP = [
 
 
 # ============================================================
+# decoração
+# ============================================================
+
+
+def place_decorations(
+    layer,
+    valid_positions,
+    group,
+    amount
+):
+    decorations = DECORATION_GROUPS[group]
+
+    available_positions = [
+        (x, y)
+        for x, y in valid_positions
+        if layer[y][x] is None
+    ]
+
+    for _ in range(amount):
+
+        if not available_positions:
+            break
+
+        x, y = random.choice(available_positions)
+        asset_name = random.choice(decorations)
+
+        layer[y][x] = asset_name
+
+        available_positions.remove((x, y))
+
+
+# ============================================================
 # mapa
 # ============================================================
 
@@ -60,7 +92,7 @@ TOP_MAP = [
 def show_minimap(
     layer,
     lines,
-    asset_name="m1",
+    asset_name="y1",
     width=120,
     margin=15,
     font_size=15,
@@ -142,7 +174,7 @@ def show_minimap(
 # BRIDGE SYSTEM
 # ============================================================
 
-def create_bridge(
+def create_bridgeH(
     layer,
     start,
     end
@@ -181,6 +213,45 @@ def create_bridge(
     # final
     layer[start_y][end_x] = "p3"
 
+
+def create_bridgeV(
+    layer,
+    start,
+    end
+):
+    """
+    Cria uma ponte vertical.
+
+    p4 = início
+    p5 = meio
+    p6 = final
+    """
+
+    start_x, start_y = start
+    end_x, end_y = end
+
+    if start_x != end_x:
+        raise ValueError(
+            "Bridge must be vertical."
+        )
+
+    if start_y > end_y:
+        start_y, end_y = end_y, start_y
+
+    if end_y - start_y < 2:
+        raise ValueError(
+            "Bridge must be at least 3 tiles long."
+        )
+
+    # início
+    layer[start_y][start_x] = "p4"
+
+    # meio
+    for y in range(start_y + 1, end_y):
+        layer[y][start_x] = "p5"
+
+    # final
+    layer[end_y][start_x] = "p6"
 
 # ============================================================
 # REPOSITORY TAG
@@ -656,9 +727,17 @@ def create_organic_island(
 
             valid_positions.remove((x, y))
 
+        # ----------------------------------------------------
+        # decorations de atividade
+        # ----------------------------------------------------
 
 
-create_organic_island(
+
+    return valid_positions
+
+
+
+island_1_positions = create_organic_island(
     GROUND_MAP,
     OBJECT_MAP,
     DETAIL_MAP,
@@ -668,7 +747,7 @@ create_organic_island(
     height=12
 )
 
-create_organic_island(
+island_2_positions = create_organic_island(
     GROUND_MAP,
     OBJECT_MAP,
     DETAIL_MAP,
@@ -678,7 +757,7 @@ create_organic_island(
     height=12
 )
 
-create_organic_island(
+island_3_positions = create_organic_island(
     GROUND_MAP,
     OBJECT_MAP,
     DETAIL_MAP,
@@ -694,12 +773,43 @@ create_organic_island(
 # BRIDGE BETWEEN ISLANDS
 # ============================================================
 
-create_bridge(
+create_bridgeH(
     OBJECT_MAP,
     start=(21, 20),
     end=(29, 20)
 )
 
+create_bridgeV(
+    OBJECT_MAP,
+    start=(25, 14),
+    end=(25, 22)
+)
+
+
+# ============================================================
+# decoração
+# ============================================================
+
+place_decorations(
+    OBJECT_MAP,
+    island_1_positions,
+    group="activity",
+    amount=3
+)
+
+place_decorations(
+    OBJECT_MAP,
+    island_2_positions,
+    group="activity",
+    amount=3
+)
+
+place_decorations(
+    OBJECT_MAP,
+    island_3_positions,
+    group="activity",
+    amount=3
+)
 
 # ============================================================
 # BUILDINGS
@@ -713,6 +823,8 @@ OBJECT_MAP[19][9] = "cv1"
 
 # Ilha 4
 OBJECT_MAP[19][33] = "co2"
+
+
 
 
 # ============================================================
@@ -856,6 +968,7 @@ show_minimap(
 background.save(
     BASE_DIR / "map.png"
 )
+
 
 
 # ============================================================
