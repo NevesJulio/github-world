@@ -105,55 +105,35 @@ def create_repo_tag(
     repo_name,
     center_x,
     y,
-    font_size=8,
+    font_size=10,
     scale=4,
     opacity=0.7,
-    offset_y=20
+    offset_y=20,
+    padding_x=16
 ):
     """
-    Cria uma tag com o nome do repositório.
+    Cria uma tag para o repositório.
 
-    scale:
-        tamanho da tag (1, 2, 3...)
-
-    opacity:
-        opacidade da tag (0.0 até 1.0)
+    - Mantém a fonte no tamanho escolhido.
+    - Aumenta a largura da tag se o nome for grande.
+    - Centraliza usando o bounding box real da fonte.
     """
-
+    text_offset_y = -5  # ajuste fino para centralizar verticalmente
     # ========================================================
-    # CARREGA TAG
+    # CARREGA TAG BASE
     # ========================================================
 
-    tag = Image.open(
+    original_tag = Image.open(
         BASE_DIR / "assets/tag.png"
     ).convert("RGBA")
 
-
-    # ========================================================
-    # AUMENTA TAG
-    # ========================================================
-
-    tag = tag.resize(
+    tag = original_tag.resize(
         (
-            tag.width * scale,
-            tag.height * scale
+            original_tag.width * scale,
+            original_tag.height * scale
         ),
         Image.Resampling.NEAREST
     )
-
-
-    # ========================================================
-    # APLICA TRANSPARÊNCIA NA TAG
-    # ========================================================
-
-    alpha = tag.getchannel("A")
-
-    alpha = alpha.point(
-        lambda p: int(p * opacity)
-    )
-
-    tag.putalpha(alpha)
-
 
     # ========================================================
     # FONTE
@@ -164,9 +144,48 @@ def create_repo_tag(
         font_size
     )
 
+    # Canvas temporário apenas para medir o texto
+    temp_draw = ImageDraw.Draw(tag)
+
+    bbox = temp_draw.textbbox(
+        (0, 0),
+        repo_name,
+        font=font
+    )
+
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
 
     # ========================================================
-    # TEXTO
+    # AUMENTA TAG HORIZONTALMENTE SE NECESSÁRIO
+    # ========================================================
+
+    required_width = int(text_width * 1.5) + (padding_x * 2)
+
+    if required_width > tag.width:
+
+        tag = tag.resize(
+            (
+                required_width,
+                tag.height
+            ),
+            Image.Resampling.NEAREST
+        )
+
+    # ========================================================
+    # OPACIDADE DA TAG
+    # ========================================================
+
+    alpha = tag.getchannel("A")
+
+    alpha = alpha.point(
+        lambda p: int(p * opacity)
+    )
+
+    tag.putalpha(alpha)
+
+    # ========================================================
+    # RECALCULA DRAW
     # ========================================================
 
     draw = ImageDraw.Draw(tag)
@@ -180,41 +199,44 @@ def create_repo_tag(
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
 
-    text_x = (
-        tag.width - text_width
-    ) // 2
+    # ========================================================
+    # CENTRALIZA CORRETAMENTE
+    # ========================================================
 
-    text_y = (
-        (tag.height - text_height) // 2
-        - bbox[1]
+    text_x = (
+        tag.width // 2
+        - (bbox[0] + bbox[2]) // 2
     )
 
+    text_y = (
+        tag.height // 2
+        - (bbox[1] + bbox[3]) // 2
+        + text_offset_y
+    )
 
     # ========================================================
-    # ESCREVE TEXTO
+    # DESENHA TEXTO
     # ========================================================
 
     draw.text(
         (text_x, text_y),
         repo_name,
         font=font,
-
-        # texto continua totalmente visível
         fill=(0, 0, 0, 255)
     )
 
-
     # ========================================================
-    # POSIÇÃO NO MAPA
+    # CENTRALIZA A TAG NO MAPA
     # ========================================================
 
-    x = (
-        center_x * TILE_SIZE
-        - tag.width // 2
+    center_pixel_x = center_x * TILE_SIZE
+
+    x = center_pixel_x - tag.width // 2
+
+    pixel_y = (
+        y * TILE_SIZE
+        + offset_y
     )
-
-    pixel_y = y * TILE_SIZE + offset_y
-
 
     # ========================================================
     # DESENHA
