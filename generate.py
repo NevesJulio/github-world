@@ -3,6 +3,7 @@ from pathlib import Path
 import random
 from assets_config_V2 import assets, DECORATION_GROUPS
 from github_activity import get_top_repositories
+import os
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -948,17 +949,17 @@ create_repo_tag(
 # render map
 # ============================================================
 
-show_minimap(
-    background,
-    lines=[
-        "NevesJulio",
-        "Python: 65%",
-        "C++: 20%"
-    ],
-    text_x=30,
-    text_y=45,
-    line_spacing=20
-)
+# show_minimap(
+#     background,
+#     lines=[
+#         "NevesJulio",
+#         "Python: 65%",
+#         "C++: 20%"
+#     ],
+#     text_x=30,
+#     text_y=45,
+#     line_spacing=20
+# )
 
 
 # ============================================================
@@ -975,19 +976,20 @@ background.save(
 # PLAYER
 # ============================================================
 
-sprites = [
-    Image.open(
-        BASE_DIR / "assets/me/frame_01.png"
-    ).convert("RGBA"),
+caminho_sprite_frente = BASE_DIR / "assets/me/frente/"
+caminho_sprite_costas = BASE_DIR / "assets/me/costas/"
+caminho_sprite_lado = BASE_DIR / "assets/me/lado/"
 
-    Image.open(
-        BASE_DIR / "assets/me/frame_02.png"
-    ).convert("RGBA"),
+sprites = []
 
-    Image.open(
-        BASE_DIR / "assets/me/frame_03.png"
-    ).convert("RGBA"),
-]
+for caminho_sprite in [caminho_sprite_frente, caminho_sprite_costas, caminho_sprite_lado]:
+    sprite = []
+    for arquivo in os.listdir(caminho_sprite):
+        sprite.append(
+            Image.open(
+                f"{caminho_sprite}/{arquivo}"
+            ).convert("RGBA"))
+    sprites.append(sprite)
 
 
 SPRITE_SIZE = (
@@ -997,11 +999,14 @@ SPRITE_SIZE = (
 
 
 sprites = [
-    sprite.resize(
-        SPRITE_SIZE,
-        Image.Resampling.NEAREST
-    )
-    for sprite in sprites
+    [
+        sprite.resize(
+            SPRITE_SIZE,
+            Image.Resampling.NEAREST
+        )
+        for sprite in direcao
+    ]
+    for direcao in sprites
 ]
 
 
@@ -1023,7 +1028,7 @@ player_y = player_row * TILE_SIZE
 frames = []
 
 
-for sprite in sprites:
+for sprite in sprites[0]:  # usando a direção lateral como exemplo
 
     img = background.copy()
 
