@@ -1,0 +1,222 @@
+"""Colônias de hexágonos anexados pelos seis lados, com caminhos conectados."""
+from collections import deque
+from dataclasses import dataclass, field
+import hashlib
+import random
+from assets import assets, DECORATION_GROUPS
+from repo_profile import DirectoryProfile
+
+TILE_SIZE = 16
+DIRECTIONS = ((1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1))
+
+
+def hex_center(q, r):
+    return 12*q, 16*r + 8*q
+
+
+def hex_cells(q, r):
+    """Hexágono de 16×16 tiles; centros em coordenadas axiais."""
+    cx, cy = hex_center(q, r)
+    return {(x, y) for x in range(cx-8, cx+8) for y in range(cy-8, cy+8)
+            if abs(x+.5-cx) + .5*abs(y+.5-cy) <= 8}
+
+
+@dataclass
+class Module:
+    key: str
+    kind: str
+    q: int
+    r: int
+    parent: tuple | None = None
+    cells: set = field(default_factory=set)
+    center: tuple = (0, 0)
+    anchor: tuple = (0, 0)
+
+
+@dataclass
+class Island:
+    profile: object
+    x: int
+    y: int
+    width: int
+    height: int
+    objects: list = field(default_factory=list)
+    paths: set = field(default_factory=set)
+    occupied: set = field(default_factory=set)
+    districts: list = field(default_factory=list)
+    modules: list = field(default_factory=list)
+    ground: set = field(default_factory=set)
+    entrance: tuple = (0, 0)
+    exit: tuple = (0, 0)
+
+    def place(self, name, x, y, allowed=None):
+        tile = assets.get(name)
+        cells = {(a, b) for a in range(x, x+tile.width) for b in range(y, y+tile.height)}
+        if cells & (self.occupied | self.paths) or not cells <= (self.ground if allowed is None else allowed):
+            return False
+        self.occupied.update(cells)
+        self.objects.append((name, x, y))
+        return True
+
+
+def house_color(language):
+    if language in {'Python', 'Jupyter Notebook', 'R', 'Julia'}:
+        return 'cv'
+    if language in {'C', 'C++', 'Rust', 'Go', 'Java'}:
+        return 'cc'
+    return 'co'
+
+
+def attach(modules, key, kind, seed):
+    occupied = {(m.q, m.r) for m in modules}
+    # Escolha de borda local e reproduzível. Os vazios preservam braços orgânicos.
+    candidates = {}
+    for m in modules:
+        for dq, dr in DIRECTIONS:
+            cell = m.q+dq, m.r+dr
+            if cell not in occupied:
+                candidates.setdefault(cell, (m.q, m.r))
+    def score(cell):
+        q, r = cell
+        radius = max(abs(q), abs(r), abs(q+r))
+        noise = int.from_bytes(hashlib.sha256(f'{seed}/{key}/{q}/{r}'.encode()).digest()[:4], 'big') / 2**32
+        neighbors = sum((q+dq, r+dr) in occupied for dq, dr in DIRECTIONS)
+        return radius*1.2 + noise - .08*neighbors
+    q, r = min(candidates, key=score)
+    modules.append(Module(key, kind, q, r, candidates[(q, r)]))
+
+
+def connect(island, start, end):
+    """Busca um caminho sobre a terra que contorna as construções."""
+    queue = deque([start])
+    previous = {start: None}
+    while queue:
+        point = queue.popleft()
+        if point == end:
+            while point is not None:
+                island.paths.add(point)
+                point = previous[point]
+            return
+        x, y = point
+        for next_point in ((x+1,y),(x,y+1),(x-1,y),(x,y-1)):
+            if next_point in island.ground and next_point not in island.occupied and next_point not in previous:
+                previous[next_point] = point
+                queue.append(next_point)
+    raise ValueError(f'Caminho desconectado em {island.profile.name}: {start} → {end}')
+
+
+def build_colony(profile):
+    modules = [Module('plaza', 'plaza', 0, 0)]
+    # Até três casas: as duas maiores e uma casa que representa os demais bairros.
+    visible = list(profile.districts)
+    if len(visible) > 3:
+        rest = visible[2:]
+        visible = visible[:2] + [DirectoryProfile('(outros)',sum(d.files for d in rest),max(d.max_depth for d in rest))]
+    for district in sorted(visible,key=lambda d: d.name):
+        attach(modules,district.name,'house',profile.name)
+    attach(modules,'garden0','garden',profile.name)
+    terrain = set().union(*(hex_cells(m.q, m.r) for m in modules))
+    min_x, min_y = min(x for x,y in terrain), min(y for x,y in terrain)
+    shift_x, shift_y = -min_x, -min_y
+    ground = {(x+shift_x,y+shift_y) for x,y in terrain}
+    island = Island(profile, 0, 0, max(x for x,y in ground)+1, max(y for x,y in ground)+1, modules=modules, ground=ground)
+    districts = {d.name: d for d in visible}
+    for m in modules:
+        cx, cy = hex_center(m.q, m.r)
+        m.center = cx+shift_x, cy+shift_y
+        m.cells = {(x+shift_x,y+shift_y) for x,y in hex_cells(m.q,m.r)}
+        cx, cy = m.center
+        m.anchor = cx, cy+5
+        if m.kind == 'house':
+            district = districts[m.key]
+            language = profile.main_language
+            index = list(districts).index(m.key)
+            if index and len(profile.languages) > 1:
+                language = profile.languages[index % len(profile.languages)]
+            name = f'{house_color(language)}{district.size}'
+            if district.size == 3:
+                name += '_compact'
+            tile = assets.get(name)
+            bx, by = cx-tile.width//2, cy-4
+            if not island.place(name,bx,by,m.cells):
+                raise ValueError(f'Casa não cabe no módulo {m.key}')
+            island.districts.append((district,bx,by+tile.height))
+            connect(island,m.anchor,(cx,by+tile.height))
+        elif m.kind == 'plaza':
+            name = 'm13' if (profile.days_inactive or 0) > 90 else 'm18'
+            if profile.days_inactive is None:
+                name = 'm21'
+            island.place(name,cx-1,cy-2,m.cells)
+    lookup = {(m.q,m.r): m for m in modules}
+    for m in modules:
+        if m.parent is not None:
+            connect(island, lookup[m.parent].anchor, m.anchor)
+    # Portas nos extremos horizontais: usadas pelas pontes entre colônias.
+    reachable = {modules[0].anchor}
+    queue = deque(reachable)
+    while queue:
+        px,py = queue.popleft()
+        for point in ((px+1,py),(px-1,py),(px,py+1),(px,py-1)):
+            if point in ground-island.occupied and point not in reachable:
+                reachable.add(point)
+                queue.append(point)
+    available = {p for p in reachable if p[1] == modules[0].anchor[1]}
+    island.entrance = min(available, key=lambda p: (p[0], abs(p[1]-modules[0].anchor[1])))
+    island.exit = min(available, key=lambda p: (-p[0], abs(p[1]-modules[0].anchor[1])))
+    connect(island,modules[0].anchor,island.entrance)
+    connect(island,modules[0].anchor,island.exit)
+    trees = ['t1','t2'] if profile.theme == 'forest' else ['t3','t4'] if profile.theme == 'research' else ['t7','t8'] if profile.theme == 'hardware' else ['t5','t6']
+    for m in modules:
+        rng = random.Random(f'{profile.name}/{m.key}')
+        def decorate(names, amount):
+            if amount <= 0:
+                return
+            positions = sorted(m.cells)
+            rng.shuffle(positions)
+            placed = 0
+            for x,y in positions:
+                if island.place(rng.choice(names),x,y,m.cells):
+                    placed += 1
+                    if placed >= amount:
+                        break
+        if m.kind == 'garden':
+            decorate(trees,3 + int((profile.days_inactive or 0) > 90))
+            decorate([f'f{i}' for i in range(1,11)],6 + min(profile.max_depth,3))
+        elif m.kind == 'plaza':
+            decorate(DECORATION_GROUPS['activity'],min(8,1+profile.recent_commits//5) if profile.recent_commits else 0)
+            decorate(['m21'],1)
+            if profile.has_docs:
+                decorate(DECORATION_GROUPS['signs'],1)
+            if profile.has_tests:
+                decorate(['c1','c2','c3'],2)
+            if profile.dependencies:
+                decorate(['wood2','m5'],1)
+        decorate([f'r{i}' for i in range(1,11)],2)
+    return island
+
+
+def translate(island, dx, dy):
+    island.x, island.y = dx, dy
+    def move(points):
+        return {(x+dx,y+dy) for x,y in points}
+    island.ground, island.paths, island.occupied = map(move,(island.ground,island.paths,island.occupied))
+    island.objects = [(name,x+dx,y+dy) for name,x,y in island.objects]
+    island.districts = [(d,x+dx,y+dy) for d,x,y in island.districts]
+    island.entrance = island.entrance[0]+dx,island.entrance[1]+dy
+    island.exit = island.exit[0]+dx,island.exit[1]+dy
+    for m in island.modules:
+        m.cells = move(m.cells)
+        m.center = m.center[0]+dx,m.center[1]+dy
+        m.anchor = m.anchor[0]+dx,m.anchor[1]+dy
+
+
+def build_layout(profiles):
+    if not profiles:
+        raise ValueError('Nenhum repositório disponível para desenhar.')
+    islands = [build_colony(p) for p in profiles]
+    x = 3
+    plaza_y = max(i.modules[0].anchor[1] for i in islands)
+    for island in islands:
+        translate(island,x,4+plaza_y-island.modules[0].anchor[1])
+        x += island.width+4
+    return islands,(x-1,max(i.y+i.height for i in islands)+3)

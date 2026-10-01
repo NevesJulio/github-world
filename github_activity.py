@@ -1,48 +1,66 @@
+"""Coleta dados do GitHub sem executar requests durante imports."""
+from datetime import datetime, timedelta, timezone
+import os
+from urllib.parse import quote
 import requests
 
 USERNAME = "NevesJulio"
 
 
+class GitHubClient:
+    def __init__(self, token=None):
+        self.session = requests.Session()
+        self.session.headers.update({"Accept": "application/vnd.github+json"})
+        token = token or os.getenv("GITHUB_TOKEN")
+        if token:
+            self.session.headers["Authorization"] = f"Bearer {token}"
+
+    def get(self, path, **params):
+        response = self.session.get(f"https://api.github.com{path}", params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+
+    def repositories(self, username, limit):
+        repos = []
+        page = 1
+        while len(repos) < limit:
+            batch = self.get(f"/users/{username}/repos", per_page=100, sort="updated", page=page)
+            repos.extend(repo for repo in batch if not repo["fork"])
+            if len(batch) < 100:
+                break
+            page += 1
+        return repos[:limit]
+
+    def collect(self, username=USERNAME, limit=3):
+        now = datetime.now(timezone.utc)
+        since = (now - timedelta(days=30)).isoformat()
+        result = []
+        for repo in self.repositories(username, limit):
+            path = f"/repos/{repo['full_name']}"
+            warnings = []
+            def optional(suffix, default, **params):
+                try:
+                    return self.get(path + suffix, **params)
+                except requests.RequestException as exc:
+                    warnings.append(f"{suffix}: {exc}")
+                    return default
+            # A árvore recursiva pode ser truncada: o perfil registra essa limitação.
+            tree = optional(f"/git/trees/{quote(repo['default_branch'], safe='')}", {"tree": [], "unavailable": True}, recursive=1)
+            languages = optional("/languages", {})
+            commits = optional("/commits", None, since=since, per_page=100)
+            result.append({
+                "name": repo["name"], "main_language": repo.get("language"),
+                "languages": languages, "topics": repo.get("topics", []),
+                "pushed_at": repo.get("pushed_at"), "as_of": now.isoformat(),
+                "tree": tree.get("tree", []), "tree_truncated": tree.get("truncated", False),
+                "tree_unavailable": tree.get("unavailable", False),
+                "recent_commits": len(commits) if commits is not None else None,
+                "commits_capped": commits is not None and len(commits) == 100,
+                "warnings": warnings,
+            })
+        return result
+
+
 def get_top_repositories(limit=3):
-
-    url = f"https://api.github.com/users/{USERNAME}/repos"
-
-    response = requests.get(
-        url,
-        params={
-            "per_page": 100,
-            "sort": "updated"
-        }
-    )
-
-    # API indisponível / rate limit
-    if response.status_code != 200:
-
-        print(
-            f"GitHub API error: "
-            f"{response.status_code}"
-        )
-
-        return [
-            "github-world",
-            "Carcinoma_Segmentation",
-            "Repository"
-        ][:limit]
-
-    repos = response.json()
-
-    repos = [
-        repo
-        for repo in repos
-        if not repo["fork"]
-    ]
-
-    repos.sort(
-        key=lambda repo: repo["updated_at"],
-        reverse=True
-    )
-
-    return [
-        repo["name"]
-        for repo in repos[:limit]
-    ]
+    """Compatibilidade para consumidores que precisam somente dos nomes."""
+    return [repo["name"] for repo in GitHubClient().repositories(USERNAME, limit)]

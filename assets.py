@@ -1,7 +1,9 @@
+from pathlib import Path
 from PIL import Image
 from tiles import Tile, AssetManager
 
 
+BASE_DIR = Path(__file__).resolve().parent
 assets = AssetManager()
 
 
@@ -29,11 +31,11 @@ ASSET_GLOSSARY = {
 
 
 Ilhas = Image.open(
-    "assets/Ilhas.png"
+    BASE_DIR / "assets/Ilhas.png"
 ).convert("RGBA")
 
 mapa = Image.open(
-    "assets/mapa.png"
+    BASE_DIR / "assets/mapa.png"
 ).convert("RGBA")
 
 
@@ -623,3 +625,121 @@ DECORATION_GROUPS = {
         "m25", "m26", "m27"
     ]
 }
+
+# Assets exclusivos do catálogo antigo; IDs da V2 têm prioridade.
+arvores = Image.open(BASE_DIR / "assets/arvores.png").convert("RGBA")
+# TREES
+# =========================
+
+assets.add(Tile(
+    "t1",
+    arvores,
+    col=0,
+    row=0,
+    width=3,
+    height=4
+))
+
+assets.add(Tile(
+    "t2",
+    arvores,
+    col=3,
+    row=0,
+    width=3,
+    height=4
+))
+
+assets.add(Tile(
+    "t3",
+    arvores,
+    col=6,
+    row=1,
+    width=2,
+    height=3
+))
+
+assets.add(Tile(
+    "t4",
+    arvores,
+    col=8,
+    row=1,
+    width=2,
+    height=3
+))
+
+
+assets.add(Tile(
+    "t5",
+    arvores,
+    col=0,
+    row=4,
+    width=3,
+    height=1
+))
+
+assets.add(Tile(
+    "t6",
+    arvores,
+    col=3,
+    row=4,
+    width=3,
+    height=1
+))
+
+assets.add(Tile(
+    "t7",
+    arvores,
+    col=7,
+    row=4,
+    width=1,
+    height=1
+))
+
+assets.add(Tile(
+    "t8",
+    arvores,
+    col=8,
+    row=4,
+    width=1,
+    height=1
+))
+
+
+madeira = Image.open(BASE_DIR / "assets/madeira.png").convert("RGBA")
+assets.add(Tile("wood1", madeira, col=2, row=2, width=3, height=1))
+assets.add(Tile("wood2", madeira, col=7, row=2, width=3, height=2))
+assets.add(Tile("wood3", madeira, col=6, row=1, width=1, height=2))
+
+# IDs próprios preservam a folhagem f1–f10 da V2.
+grama = Image.open(BASE_DIR / "assets/grama.png").convert("RGBA")
+assets.add(Tile("floor1", grama, col=4, row=6))
+assets.add(Tile("floor2", grama, col=5, row=6))
+assets.add(Tile("floor3", grama, col=6, row=6))
+assets.add(Tile("floor4", grama, col=4, row=7))
+assets.add(Tile("floor5", grama, col=5, row=7))
+assets.add(Tile("floor6", grama, col=6, row=7))
+assets.add(Tile("floor7", grama, col=1, row=6, width=3, height=4))
+assets.add(Tile("floor8", grama, col=5, row=3, width=1, height=1))
+assets.add(Tile("floor9", grama, col=3, row=3, width=1, height=1))
+assets.add(Tile("floor10", grama, col=4, row=3, width=1, height=1))
+assets.add(Tile("grass1", grama, col=10, row=1))
+assets.add(Tile("grass2", grama, col=11, row=1))
+assets.add(Tile("grass3", grama, col=12, row=1))
+assets.add(Tile("grass4", grama, col=13, row=1))
+assets.add(Tile("grass5", grama, col=10, row=2))
+assets.add(Tile("grass6", grama, col=11, row=2))
+assets.add(Tile("grass7", grama, col=12, row=2))
+assets.add(Tile("grass8", grama, col=13, row=2))
+
+ASSET_GLOSSARY.update({"t": "Árvores", "wood": "Madeira antiga", "floor": "Pisos antigos", "grass": "Grama antiga", "y": "Mapa"})
+
+# Centro do bloco de terra; e1 é decorativo no tileset consolidado.
+assets.add(Tile('path1', Ilhas, col=1, row=6))
+ASSET_GLOSSARY['path'] = 'Caminhos de terra'
+
+# Variante compacta das casas maiores, preservando todos os recortes originais.
+for color in ('co', 'cc', 'cv'):
+    original = assets.get(f'{color}3')
+    compact = Tile(f'{color}3_compact', Ilhas, original.col, original.row, width=10, height=7)
+    compact.image = original.image.resize((160, 112), Image.Resampling.NEAREST)
+    assets.add(compact)

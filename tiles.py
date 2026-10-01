@@ -66,26 +66,3 @@ class AssetManager:
 
     def list(self):
         return list(self.assets.keys())
-
-
-
-
-def render_layer(canvas, layer):
-
-    for row, line in enumerate(layer):
-
-        for col, asset_name in enumerate(line):
-
-            if asset_name is None:
-                continue
-
-            asset = assets.get(asset_name)
-
-            x = col * TILE_SIZE
-            y = row * TILE_SIZE
-
-            canvas.paste(
-                asset.image,
-                (x, y),
-                asset.image
-            )
