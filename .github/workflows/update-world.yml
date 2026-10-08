@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python generate.py
+          python generate.py --limit 1
 
       - name: Commit updated world
         run: |

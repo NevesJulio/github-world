@@ -28,7 +28,12 @@ def main():
     source.add_argument('--offline', action='store_true', help='Usa a árvore local; atividade e linguagens não são consultadas.')
     source.add_argument('--data', type=Path, help='Lê snapshot JSON (lista de repositórios).')
     parser.add_argument('--username', default=USERNAME)
-    parser.add_argument('--limit', type=int, default=3)
+    parser.add_argument(
+        '--limit',
+        type=int,
+        default=1,
+        help='Quantidade de repositórios no mapa (padrão: 1; máximo: 3).',
+    )
     parser.add_argument('--output-dir', type=Path, default=BASE_DIR)
     parser.add_argument('--save-data', type=Path, help='Salva dados coletados para repetir a geração offline.')
     args = parser.parse_args()

@@ -13,11 +13,13 @@ python3 -m pip install -r requirements.txt
 python3 generate.py
 ```
 
-Por padrão, consulta até três repositórios públicos de `NevesJulio`, sem forks, ordenados pela atualização mais recente. Para outro usuário:
+Por padrão, consulta apenas o repositório público mais recentemente atualizado de `NevesJulio`, sem forks. Para outro usuário:
 
 ```bash
-python3 generate.py --username SEU_USUARIO --limit 3
+python3 generate.py --username SEU_USUARIO
 ```
+
+Para voltar a mostrar dois ou três repositórios, use `--limit 2` ou `--limit 3`. Alterar o valor padrão de `get_top_repositories()` em `github_activity.py` não muda o gerador principal; quem controla a quantidade é o argumento `--limit` de `generate.py`.
 
 A variável opcional `GITHUB_TOKEN` autentica as consultas e aumenta o limite de requests. O token nunca é salvo no snapshot. O workflow usa o token disponibilizado pelo GitHub Actions e atualiza `map.png` e `world.gif` a cada seis horas.
 

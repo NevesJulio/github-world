@@ -31,7 +31,7 @@ class GitHubClient:
             page += 1
         return repos[:limit]
 
-    def collect(self, username=USERNAME, limit=3):
+    def collect(self, username=USERNAME, limit=1):
         now = datetime.now(timezone.utc)
         since = (now - timedelta(days=30)).isoformat()
         result = []
@@ -61,6 +61,6 @@ class GitHubClient:
         return result
 
 
-def get_top_repositories(limit=3):
+def get_top_repositories(limit=1):
     """Compatibilidade para consumidores que precisam somente dos nomes."""
     return [repo["name"] for repo in GitHubClient().repositories(USERNAME, limit)]
