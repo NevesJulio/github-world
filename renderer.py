@@ -77,19 +77,34 @@ def save_world(islands, dimensions, output_dir):
     output_dir.mkdir(parents=True,exist_ok=True)
     background = render_map(islands,dimensions)
     background.save(output_dir/'map.png')
-    # Retrato animado: os frames de frente ficam em um painel no canto
-    # superior direito, independentes dos caminhos do mapa.
-    player_size = (64, 64)
-    sprites = [Image.open(path).convert('RGBA').resize(player_size,Image.Resampling.NEAREST)
+    # O retrato usa os frames frontais; o personagem do mapa mantém os
+    # frames laterais e percorre um trecho livre do caminho.
+    portrait_sprites = [Image.open(path).convert('RGBA').resize((64,64),Image.Resampling.NEAREST)
                for path in sorted((BASE_DIR/'assets/me/frente').glob('*.png'))]
-    if not sprites:
+    walker_sprites = [Image.open(path).convert('RGBA').resize((48,48),Image.Resampling.NEAREST)
+                      for path in sorted((BASE_DIR/'assets/me/lado').glob('*.png'))]
+    if not portrait_sprites:
         raise ValueError('Nenhum frame de personagem em assets/me/frente.')
+    if not walker_sprites:
+        raise ValueError('Nenhum frame de personagem em assets/me/lado.')
+
+    first = islands[0]
+    runs = [(x,y) for x,y in sorted(first.paths)
+            if all((x+n,y) in first.paths for n in range(4))]
+    start = min(
+        runs,
+        key=lambda p: abs(p[0]-first.modules[0].anchor[0]) + abs(p[1]-first.modules[0].anchor[1]),
+    ) if runs else first.modules[0].anchor
+    start_x, path_y = (n*TILE_SIZE for n in start)
+    outbound = list(range(0,49,4))
+    returning = list(range(44,-1,-4))
+    offsets = outbound + returning if runs else [0]*len(walker_sprites)
 
     panel_width, panel_height = 96, 96
     panel_x = background.width - panel_width - 24
     panel_y = 56
     frames = []
-    for i, sprite in enumerate(sprites):
+    for i, offset in enumerate(offsets):
         frame = background.copy()
         panel = Image.new('RGBA', (panel_width, panel_height), (18, 42, 30, 210))
         panel_draw = ImageDraw.Draw(panel)
@@ -107,10 +122,21 @@ def save_world(islands, dimensions, output_dir):
             fill=(230, 240, 230, 255),
         )
         frame.alpha_composite(panel, (panel_x, panel_y))
+        portrait = portrait_sprites[i % len(portrait_sprites)]
         bob = (0, 1, 0, -1)[i % 4]
-        sprite_x = panel_x + (panel_width-sprite.width)//2
-        sprite_y = panel_y + panel_height-sprite.height-5+bob
-        frame.paste(sprite, (sprite_x, sprite_y), sprite)
+        portrait_x = panel_x + (panel_width-portrait.width)//2
+        portrait_y = panel_y + panel_height-portrait.height-5+bob
+        frame.paste(portrait, (portrait_x, portrait_y), portrait)
+
+        walker = walker_sprites[i % len(walker_sprites)]
+        # Os frames laterais originais olham para a esquerda.
+        if runs and i < len(outbound):
+            walker = walker.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        frame.paste(
+            walker,
+            (start_x+offset, path_y-walker.height+TILE_SIZE),
+            walker,
+        )
         frames.append(frame)
     # GIF só suporta transparência binária. Reserve o índice 255 em todos os frames.
     palette = background.convert('RGB').quantize(colors=255).getpalette()
