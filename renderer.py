@@ -77,7 +77,8 @@ def save_world(islands, dimensions, output_dir):
     output_dir.mkdir(parents=True,exist_ok=True)
     background = render_map(islands,dimensions)
     background.save(output_dir/'map.png')
-    sprites = [Image.open(path).convert('RGBA').resize((32,32),Image.Resampling.NEAREST)
+    player_size = (48, 48)
+    sprites = [Image.open(path).convert('RGBA').resize(player_size,Image.Resampling.NEAREST)
                for path in sorted((BASE_DIR/'assets/me/lado').glob('*.png'))]
     if not sprites:
         raise ValueError('Nenhum frame de personagem em assets/me/lado.')
@@ -86,12 +87,16 @@ def save_world(islands, dimensions, output_dir):
     runs = [(x,y) for x,y in sorted(first.paths) if all((x+n,y) in first.paths for n in range(4))]
     start = min(runs,key=lambda p: abs(p[0]-first.modules[0].anchor[0])+abs(p[1]-first.modules[0].anchor[1])) if runs else first.modules[0].anchor
     start_x,y = (n*TILE_SIZE for n in start)
-    offsets = list(range(0,49,4)) + list(range(44,-1,-4)) if runs else [0]*len(sprites)
+    outbound = list(range(0,49,4))
+    returning = list(range(44,-1,-4))
+    offsets = outbound + returning if runs else [0]*len(sprites)
     frames = []
     for i,offset in enumerate(offsets):
         frame = background.copy()
         sprite = sprites[i % len(sprites)]
-        if i >= 13:
+        # Os frames originais olham para a esquerda. Espelha enquanto o
+        # personagem anda para a direita e mantém o original na volta.
+        if runs and i < len(outbound):
             sprite = sprite.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
         frame.paste(sprite,(start_x+offset,y-sprite.height+16),sprite)
         frames.append(frame)
