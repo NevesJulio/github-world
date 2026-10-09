@@ -79,7 +79,7 @@ def save_world(islands, dimensions, output_dir):
     background.save(output_dir/'map.png')
     # O retrato usa os frames frontais; o personagem do mapa mantém os
     # frames laterais e percorre um trecho livre do caminho.
-    portrait_sprites = [Image.open(path).convert('RGBA').resize((64,64),Image.Resampling.NEAREST)
+    portrait_sprites = [Image.open(path).convert('RGBA').resize((80,80),Image.Resampling.NEAREST)
                for path in sorted((BASE_DIR/'assets/me/frente').glob('*.png'))]
     walker_sprites = [Image.open(path).convert('RGBA').resize((48,48),Image.Resampling.NEAREST)
                       for path in sorted((BASE_DIR/'assets/me/lado').glob('*.png'))]
@@ -100,7 +100,20 @@ def save_world(islands, dimensions, output_dir):
     returning = list(range(44,-1,-4))
     offsets = outbound + returning if runs else [0]*len(walker_sprites)
 
-    panel_width, panel_height = 96, 96
+    panel_padding_x = 12
+    panel_title_height = 24
+    panel_padding_bottom = 6
+    panel_font = ImageFont.truetype(str(BASE_DIR/'assets/fonts/pixel.ttf'), 8)
+    panel_title = 'NevesJulio'
+    text_box = panel_font.getbbox(panel_title)
+    text_width = text_box[2] - text_box[0]
+    portrait_width = max(sprite.width for sprite in portrait_sprites)
+    portrait_height = max(sprite.height for sprite in portrait_sprites)
+    panel_width = max(
+        portrait_width + panel_padding_x*2,
+        text_width + panel_padding_x*2,
+    )
+    panel_height = portrait_height + panel_title_height + panel_padding_bottom
     panel_x = background.width - panel_width - 24
     panel_y = 56
     frames = []
@@ -116,8 +129,8 @@ def save_world(islands, dimensions, output_dir):
         )
         panel_draw.text(
             (panel_width//2, 8),
-            'PERSONAGEM',
-            font=ImageFont.truetype(str(BASE_DIR/'assets/fonts/pixel.ttf'), 8),
+            panel_title,
+            font=panel_font,
             anchor='mt',
             fill=(230, 240, 230, 255),
         )
@@ -125,7 +138,7 @@ def save_world(islands, dimensions, output_dir):
         portrait = portrait_sprites[i % len(portrait_sprites)]
         bob = (0, 1, 0, -1)[i % 4]
         portrait_x = panel_x + (panel_width-portrait.width)//2
-        portrait_y = panel_y + panel_height-portrait.height-5+bob
+        portrait_y = panel_y + panel_height-portrait.height-panel_padding_bottom+bob
         frame.paste(portrait, (portrait_x, portrait_y), portrait)
 
         walker = walker_sprites[i % len(walker_sprites)]
