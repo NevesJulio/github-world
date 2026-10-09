@@ -77,28 +77,40 @@ def save_world(islands, dimensions, output_dir):
     output_dir.mkdir(parents=True,exist_ok=True)
     background = render_map(islands,dimensions)
     background.save(output_dir/'map.png')
-    player_size = (48, 48)
+    # Retrato animado: os frames de frente ficam em um painel no canto
+    # superior direito, independentes dos caminhos do mapa.
+    player_size = (64, 64)
     sprites = [Image.open(path).convert('RGBA').resize(player_size,Image.Resampling.NEAREST)
-               for path in sorted((BASE_DIR/'assets/me/lado').glob('*.png'))]
+               for path in sorted((BASE_DIR/'assets/me/frente').glob('*.png'))]
     if not sprites:
-        raise ValueError('Nenhum frame de personagem em assets/me/lado.')
-    first = islands[0]
-    # Escolhe um trecho livre do caminho real, em vez de uma posição fixa.
-    runs = [(x,y) for x,y in sorted(first.paths) if all((x+n,y) in first.paths for n in range(4))]
-    start = min(runs,key=lambda p: abs(p[0]-first.modules[0].anchor[0])+abs(p[1]-first.modules[0].anchor[1])) if runs else first.modules[0].anchor
-    start_x,y = (n*TILE_SIZE for n in start)
-    outbound = list(range(0,49,4))
-    returning = list(range(44,-1,-4))
-    offsets = outbound + returning if runs else [0]*len(sprites)
+        raise ValueError('Nenhum frame de personagem em assets/me/frente.')
+
+    panel_width, panel_height = 96, 96
+    panel_x = background.width - panel_width - 24
+    panel_y = 56
     frames = []
-    for i,offset in enumerate(offsets):
+    for i, sprite in enumerate(sprites):
         frame = background.copy()
-        sprite = sprites[i % len(sprites)]
-        # Os frames originais olham para a esquerda. Espelha enquanto o
-        # personagem anda para a direita e mantém o original na volta.
-        if runs and i < len(outbound):
-            sprite = sprite.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-        frame.paste(sprite,(start_x+offset,y-sprite.height+16),sprite)
+        panel = Image.new('RGBA', (panel_width, panel_height), (18, 42, 30, 210))
+        panel_draw = ImageDraw.Draw(panel)
+        panel_draw.rounded_rectangle(
+            (0, 0, panel_width-1, panel_height-1),
+            radius=8,
+            outline=(220, 235, 180, 255),
+            width=2,
+        )
+        panel_draw.text(
+            (panel_width//2, 8),
+            'PERSONAGEM',
+            font=ImageFont.truetype(str(BASE_DIR/'assets/fonts/pixel.ttf'), 8),
+            anchor='mt',
+            fill=(230, 240, 230, 255),
+        )
+        frame.alpha_composite(panel, (panel_x, panel_y))
+        bob = (0, 1, 0, -1)[i % 4]
+        sprite_x = panel_x + (panel_width-sprite.width)//2
+        sprite_y = panel_y + panel_height-sprite.height-5+bob
+        frame.paste(sprite, (sprite_x, sprite_y), sprite)
         frames.append(frame)
     # GIF só suporta transparência binária. Reserve o índice 255 em todos os frames.
     palette = background.convert('RGB').quantize(colors=255).getpalette()

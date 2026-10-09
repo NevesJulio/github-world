@@ -113,11 +113,16 @@ class ProfileTests(unittest.TestCase):
             with Image.open(Path(root)/'world.gif') as gif:
                 self.assertEqual(gif.info['transparency'],255)
                 self.assertGreater(gif.n_frames,1)
+                menu_bounds = []
                 for frame in ImageSequence.Iterator(gif):
                     rgba = frame.convert('RGBA')
                     self.assertEqual(rgba.getpixel((0,0))[3],0)
-                    # O personagem fica inteiramente na terra: todos os frames têm a mesma silhueta opaca.
-                    self.assertIsNone(ImageChops.difference(rgba.getchannel('A'),png_alpha).getbbox())
+                    frame_alpha = rgba.getchannel('A')
+                    # O mapa continua visível por inteiro; o painel acrescenta pixels
+                    # opacos somente na área reservada ao personagem.
+                    self.assertIsNone(ImageChops.subtract(png_alpha,frame_alpha).getbbox())
+                    menu_bounds.append(ImageChops.difference(frame_alpha,png_alpha).getbbox())
+                self.assertTrue(all(bounds is not None for bounds in menu_bounds))
 
     def test_all_asset_crops_fit_their_source(self):
         for name in assets.list():
