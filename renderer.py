@@ -5,6 +5,7 @@ from assets import assets
 from layout import TILE_SIZE
 
 BASE_DIR = Path(__file__).resolve().parent
+SHOW_PATH_TILES = False
 
 
 def paste_asset(canvas, name, x, y):
@@ -39,8 +40,12 @@ def render_map(islands, dimensions):
                     if all((x+dx,y+dy) in island.ground for dx,dy in ((1,0),(-1,0),(0,1),(0,-1))):
                         tint_draw.rectangle((x*TILE_SIZE,y*TILE_SIZE,(x+1)*TILE_SIZE-1,(y+1)*TILE_SIZE-1),fill=(18,95,40,24))
         canvas.alpha_composite(tint)
-        for x,y in sorted(island.paths):
-            paste_asset(canvas, 'path1', x,y)
+        # A rota continua existindo para guiar o personagem e reservar espaço
+        # entre os objetos. Sua aparência pode ser ligada novamente sem mexer
+        # na lógica do layout.
+        if SHOW_PATH_TILES:
+            for x,y in sorted(island.paths):
+                paste_asset(canvas, 'path1', x,y)
         for name,x,y in sorted(island.objects, key=lambda obj: (obj[2]+assets.get(obj[0]).height,obj[1])):
             paste_asset(canvas,name,x,y)
         # Rótulos próprios para identificar os bairros representados.
