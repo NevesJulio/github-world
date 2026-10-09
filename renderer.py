@@ -1,11 +1,55 @@
 """Desenha o cenário e anima o personagem sobre os caminhos."""
+import base64
+from io import BytesIO
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from assets import assets
 from layout import TILE_SIZE
 
 BASE_DIR = Path(__file__).resolve().parent
 SHOW_PATH_TILES = False
+
+
+def make_info_panel(title, content_size, font):
+    padding_x = 12
+    title_height = 24
+    padding_bottom = 6
+    text_box = font.getbbox(title)
+    text_width = text_box[2] - text_box[0]
+    width = max(content_size[0] + padding_x*2, text_width + padding_x*2)
+    height = content_size[1] + title_height + padding_bottom
+    panel = Image.new('RGBA', (width, height), (18, 42, 30, 210))
+    draw = ImageDraw.Draw(panel)
+    draw.rounded_rectangle(
+        (0, 0, width-1, height-1),
+        radius=8,
+        outline=(220, 235, 180, 255),
+        width=2,
+    )
+    draw.text(
+        (width//2, 8), title, font=font, anchor='mt',
+        fill=(230, 240, 230, 255),
+    )
+    return panel, title_height, padding_bottom
+
+
+def repository_icon(profile, size=(80, 80)):
+    """Decodifica nome-do-repositorio.png ou cria um fallback com a inicial."""
+    if profile.icon_base64:
+        try:
+            source = Image.open(BytesIO(base64.b64decode(profile.icon_base64))).convert('RGBA')
+            contained = ImageOps.contain(source, size, Image.Resampling.NEAREST)
+            icon = Image.new('RGBA', size, (0, 0, 0, 0))
+            icon.paste(contained, ((size[0]-contained.width)//2, (size[1]-contained.height)//2), contained)
+            return icon
+        except (OSError, ValueError):
+            pass
+    icon = Image.new('RGBA', size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(icon)
+    draw.ellipse((8, 8, size[0]-9, size[1]-9), fill=(42, 112, 72, 255), outline=(220, 235, 180, 255), width=2)
+    font = ImageFont.truetype(str(BASE_DIR/'assets/fonts/pixel.ttf'), 28)
+    draw.text((size[0]//2, size[1]//2), profile.name[:1].upper(), font=font, anchor='mm', fill='white')
+    return icon
 
 
 def paste_asset(canvas, name, x, y):
@@ -105,46 +149,41 @@ def save_world(islands, dimensions, output_dir):
     returning = list(range(44,-1,-4))
     offsets = outbound + returning if runs else [0]*len(walker_sprites)
 
-    panel_padding_x = 12
-    panel_title_height = 24
-    panel_padding_bottom = 6
     panel_font = ImageFont.truetype(str(BASE_DIR/'assets/fonts/pixel.ttf'), 8)
     panel_title = 'NevesJulio'
-    text_box = panel_font.getbbox(panel_title)
-    text_width = text_box[2] - text_box[0]
     portrait_width = max(sprite.width for sprite in portrait_sprites)
     portrait_height = max(sprite.height for sprite in portrait_sprites)
-    panel_width = max(
-        portrait_width + panel_padding_x*2,
-        text_width + panel_padding_x*2,
+    panel, panel_title_height, panel_padding_bottom = make_info_panel(
+        panel_title,
+        (portrait_width, portrait_height),
+        panel_font,
     )
-    panel_height = portrait_height + panel_title_height + panel_padding_bottom
+    panel_width, panel_height = panel.size
     panel_x = background.width - panel_width - 24
     panel_y = 56
+
+    repo_icon = repository_icon(first.profile)
+    repo_panel, repo_title_height, repo_padding_bottom = make_info_panel(
+        first.profile.name,
+        repo_icon.size,
+        panel_font,
+    )
+    repo_panel_x = 24
+    repo_panel_y = panel_y
     frames = []
     for i, offset in enumerate(offsets):
         frame = background.copy()
-        panel = Image.new('RGBA', (panel_width, panel_height), (18, 42, 30, 210))
-        panel_draw = ImageDraw.Draw(panel)
-        panel_draw.rounded_rectangle(
-            (0, 0, panel_width-1, panel_height-1),
-            radius=8,
-            outline=(220, 235, 180, 255),
-            width=2,
-        )
-        panel_draw.text(
-            (panel_width//2, 8),
-            panel_title,
-            font=panel_font,
-            anchor='mt',
-            fill=(230, 240, 230, 255),
-        )
         frame.alpha_composite(panel, (panel_x, panel_y))
         portrait = portrait_sprites[i % len(portrait_sprites)]
         bob = (0, 1, 0, -1)[i % 4]
         portrait_x = panel_x + (panel_width-portrait.width)//2
         portrait_y = panel_y + panel_height-portrait.height-panel_padding_bottom+bob
         frame.paste(portrait, (portrait_x, portrait_y), portrait)
+
+        frame.alpha_composite(repo_panel, (repo_panel_x, repo_panel_y))
+        repo_icon_x = repo_panel_x + (repo_panel.width-repo_icon.width)//2
+        repo_icon_y = repo_panel_y + repo_title_height
+        frame.paste(repo_icon, (repo_icon_x, repo_icon_y), repo_icon)
 
         walker = walker_sprites[i % len(walker_sprites)]
         # Os frames laterais originais olham para a esquerda.

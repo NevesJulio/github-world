@@ -48,6 +48,17 @@ class GitHubClient:
             tree = optional(f"/git/trees/{quote(repo['default_branch'], safe='')}", {"tree": [], "unavailable": True}, recursive=1)
             languages = optional("/languages", {})
             commits = optional("/commits", None, since=since, per_page=100)
+            icon_name = f"{repo['name']}.png"
+            icon_entry = next(
+                (entry for entry in tree.get("tree", [])
+                 if entry.get("type") == "blob" and entry.get("path") == icon_name),
+                None,
+            )
+            icon_base64 = None
+            if icon_entry:
+                blob = optional(f"/git/blobs/{icon_entry['sha']}", {})
+                if blob.get("encoding") == "base64":
+                    icon_base64 = blob.get("content")
             result.append({
                 "name": repo["name"], "main_language": repo.get("language"),
                 "languages": languages, "topics": repo.get("topics", []),
@@ -56,6 +67,7 @@ class GitHubClient:
                 "tree_unavailable": tree.get("unavailable", False),
                 "recent_commits": len(commits) if commits is not None else None,
                 "commits_capped": commits is not None and len(commits) == 100,
+                "icon_base64": icon_base64,
                 "warnings": warnings,
             })
         return result

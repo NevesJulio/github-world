@@ -40,7 +40,17 @@ python3 generate.py --save-data /tmp/repos.json
 python3 generate.py --data /tmp/repos.json --output-dir /tmp/meu-mapa
 ```
 
-O JSON contém uma lista de repositórios com `name`, `tree` (entradas com `path` e `type`), `main_language`, `languages` (bytes por linguagem), `topics`, `recent_commits`, `pushed_at` e `as_of`. O layout e a decoração são determinísticos para os mesmos dados e assets, usando uma semente por nome de repositório e frames ordenados.
+O JSON contém uma lista de repositórios com `name`, `tree` (entradas com `path` e `type`), `main_language`, `languages` (bytes por linguagem), `topics`, `recent_commits`, `pushed_at`, `as_of` e o ícone opcional em `icon_base64`. O layout e a decoração são determinísticos para os mesmos dados e assets, usando uma semente por nome de repositório e frames ordenados.
+
+## Ícone do repositório
+
+O GIF mostra um painel no canto superior esquerdo com o nome e o ícone do repositório. Para definir o ícone, coloque um PNG na raiz do próprio repositório usando exatamente o nome do projeto. Por exemplo:
+
+```text
+github-world/github-world.png
+```
+
+O nome diferencia maiúsculas de minúsculas. A coleta encontra esse arquivo na árvore da branch padrão e baixa seu conteúdo pela API do GitHub. No modo `--offline`, o gerador procura o mesmo arquivo na raiz local. Imagens retangulares mantêm sua proporção e são centralizadas; se o arquivo não existir ou for inválido, aparece um círculo com a inicial do repositório.
 
 ## Significado visual
 

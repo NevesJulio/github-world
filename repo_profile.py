@@ -18,6 +18,7 @@ class DirectoryProfile:
 @dataclass(frozen=True)
 class RepoProfile:
     name: str
+    icon_base64: str | None
     main_language: str
     languages: tuple
     files: int
@@ -67,4 +68,4 @@ def profile_repository(data):
     if data.get('pushed_at') and data.get('as_of'):
         inactive = max(0, (datetime.fromisoformat(data['as_of'].replace('Z', '+00:00')) - datetime.fromisoformat(data['pushed_at'].replace('Z', '+00:00'))).days)
     count = len(paths)
-    return RepoProfile(data['name'], language, languages, count, len(directories), max((len(PurePosixPath(p).parts)-1 for p in paths), default=0), data.get('recent_commits'), inactive, has_tests, has_docs, dependencies, 3 if count >= 200 else 2 if count >= 40 else 1, theme, tuple(districts), bool(data.get('tree_truncated') or data.get('tree_unavailable')))
+    return RepoProfile(data['name'], data.get('icon_base64'), language, languages, count, len(directories), max((len(PurePosixPath(p).parts)-1 for p in paths), default=0), data.get('recent_commits'), inactive, has_tests, has_docs, dependencies, 3 if count >= 200 else 2 if count >= 40 else 1, theme, tuple(districts), bool(data.get('tree_truncated') or data.get('tree_unavailable')))

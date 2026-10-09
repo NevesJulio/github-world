@@ -1,5 +1,6 @@
 """Coordena coleta, interpretação, layout e renderização."""
 import argparse
+import base64
 import json
 from pathlib import Path
 import sys
@@ -19,7 +20,9 @@ def local_repository(root):
         relative = path.relative_to(root)
         if path.is_file() and not (set(relative.parts) & excluded):
             tree.append({'path': relative.as_posix(), 'type': 'blob'})
-    return {'name': root.name, 'main_language': 'Python', 'languages': {'Python': 1}, 'tree': tree, 'recent_commits': None, 'topics': []}
+    icon_path = root / f'{root.name}.png'
+    icon_base64 = base64.b64encode(icon_path.read_bytes()).decode() if icon_path.is_file() else None
+    return {'name': root.name, 'icon_base64': icon_base64, 'main_language': 'Python', 'languages': {'Python': 1}, 'tree': tree, 'recent_commits': None, 'topics': []}
 
 
 def main():

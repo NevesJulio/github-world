@@ -34,8 +34,9 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual([DirectoryProfile('d', n, 1).size for n in [1, 20, 80]], [1, 2, 3])
 
     def test_empty_and_truncated_repository(self):
-        p = profile_repository({'name': 'empty', 'tree_truncated': True})
+        p = profile_repository({'name': 'empty', 'tree_truncated': True, 'icon_base64': 'aWNvbg=='})
         self.assertTrue(p.incomplete)
+        self.assertEqual(p.icon_base64, 'aWNvbg==')
         self.assertEqual(p.files, 0)
         self.assertEqual(len(p.districts), 1)
         self.assertIsNone(p.recent_commits)
@@ -132,6 +133,16 @@ class ProfileTests(unittest.TestCase):
 
 
 class CollectionTests(unittest.TestCase):
+    def test_repository_icon_uses_matching_root_png(self):
+        repo = {'name': 'project', 'full_name': 'user/project', 'default_branch': 'main', 'fork': False}
+        tree = {'tree': [{'path': 'project.png', 'type': 'blob', 'sha': 'icon-sha'}]}
+        client = GitHubClient()
+        with patch.object(client, 'repositories', return_value=[repo]), patch.object(
+            client, 'get', side_effect=[tree, {}, [], {'encoding': 'base64', 'content': 'aWNvbg=='}]
+        ):
+            data = client.collect()[0]
+        self.assertEqual(data['icon_base64'], 'aWNvbg==')
+
     def test_optional_api_failure_is_marked_as_unknown(self):
         repo = {'name': 'empty', 'full_name': 'user/empty', 'default_branch': 'main'}
         client = GitHubClient()
