@@ -1,0 +1,47 @@
+# Aparência controlada da vegetação. As regras são aplicadas na ordem;
+# regras posteriores substituem somente os valores que declaram.
+vegetation:
+  assets:
+    large: [t1, t2]          # árvores grandes
+    small: [t3, t4]          # árvores pequenas
+    large_stump: [t5, t6]    # tocos grandes
+    small_stump: [t7, t8]    # tocos pequenos
+
+  defaults:
+    large: 0
+    small: 1
+    large_stump: 1
+    small_stump: 1
+
+  rules:
+    - when:
+        min_files: 40
+      trees:
+        large: 1
+        small: 2
+        large_stump: 1
+        small_stump: 1
+
+    - when:
+        min_files: 200
+        min_directories: 10
+      trees:
+        large: 2
+        small: 2
+        large_stump: 1
+        small_stump: 2
+
+    - when:
+        has_tests: true
+        has_docs: true
+      trees:
+        small: 3
+
+  # Ajustes por nome têm prioridade sobre defaults e regras automáticas.
+  repositories:
+    github-world:
+      trees:
+        large: 1
+        small: 2
+        large_stump: 1
+        small_stump: 2

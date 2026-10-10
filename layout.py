@@ -5,6 +5,7 @@ import hashlib
 import random
 from assets import assets, DECORATION_GROUPS
 from repo_profile import DirectoryProfile
+from visual_config import tree_assets_for
 
 TILE_SIZE = 16
 DIRECTIONS = ((1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1))
@@ -165,7 +166,7 @@ def build_colony(profile):
     island.exit = min(available, key=lambda p: (-p[0], abs(p[1]-modules[0].anchor[1])))
     connect(island,modules[0].anchor,island.entrance)
     connect(island,modules[0].anchor,island.exit)
-    trees = ['t1','t2'] if profile.theme == 'forest' else ['t3','t4'] if profile.theme == 'research' else ['t7','t8'] if profile.theme == 'hardware' else ['t5','t6']
+    trees = tree_assets_for(profile)
     for m in modules:
         rng = random.Random(f'{profile.name}/{m.key}')
         def decorate(names, amount):
@@ -179,8 +180,15 @@ def build_colony(profile):
                     placed += 1
                     if placed >= amount:
                         break
+        def decorate_exact(names):
+            positions = sorted(m.cells)
+            rng.shuffle(positions)
+            for name in names:
+                for x,y in positions:
+                    if island.place(name,x,y,m.cells):
+                        break
         if m.kind == 'garden':
-            decorate(trees,3 + int((profile.days_inactive or 0) > 90))
+            decorate_exact(trees)
             decorate([f'f{i}' for i in range(1,11)],6 + min(profile.max_depth,3))
         elif m.kind == 'plaza':
             decorate(DECORATION_GROUPS['activity'],min(8,1+profile.recent_commits//5) if profile.recent_commits else 0)

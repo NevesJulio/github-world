@@ -10,6 +10,7 @@ from github_activity import GitHubClient
 from repo_profile import DirectoryProfile, profile_repository
 from layout import DIRECTIONS, build_layout
 from renderer import save_world
+from visual_config import tree_assets_for, tree_counts
 
 
 def repository(name='example', count=6):
@@ -130,6 +131,27 @@ class ProfileTests(unittest.TestCase):
             tile = assets.get(name)
             self.assertLessEqual((tile.col+tile.width)*tile.tile_size,tile.tileset.width,name)
             self.assertLessEqual((tile.row+tile.height)*tile.tile_size,tile.tileset.height,name)
+
+    def test_tree_config_combines_rules_and_repository_override(self):
+        profile = profile_repository(repository(name='custom', count=3))
+        config = {
+            'vegetation': {
+                'assets': {
+                    'large': ['t1', 't2'], 'small': ['t3', 't4'],
+                    'large_stump': ['t5', 't6'], 'small_stump': ['t7', 't8'],
+                },
+                'defaults': {'large': 0, 'small': 1, 'large_stump': 0, 'small_stump': 1},
+                'rules': [{'when': {'min_files': 40}, 'trees': {'large': 2}}],
+                'repositories': {'custom': {'trees': {'small_stump': 3}}},
+            }
+        }
+        self.assertEqual(tree_counts(profile, config), {
+            'large': 2, 'small': 1, 'large_stump': 0, 'small_stump': 3,
+        })
+        selected = tree_assets_for(profile, config)
+        self.assertEqual(len(selected), 6)
+        self.assertTrue(set(selected[:2]) <= {'t1', 't2'})
+        self.assertTrue(set(selected[-3:]) <= {'t7', 't8'})
 
 
 class CollectionTests(unittest.TestCase):

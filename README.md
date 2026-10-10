@@ -71,7 +71,32 @@ O nome diferencia maiúsculas de minúsculas. A coleta encontra esse arquivo na 
 | Testes identificados pelo caminho/nome | Cercas na praça |
 | README ou diretórios de documentação | Placa na praça |
 | Manifestos de dependências | Depósito ou caixa na praça |
-| Tópicos de pesquisa, hardware ou web | Diferentes grupos de árvores e vegetação |
+| Arquivos, diretórios, testes e documentação | Mistura de árvores definida pelas regras de `world.yaml` |
+
+## Controlar as árvores
+
+A mistura de árvores fica em `world.yaml`. Os quatro grupos correspondem diretamente aos sprites:
+
+| Grupo YAML | Assets | Aparência |
+| --- | --- | --- |
+| `large` | `t1`, `t2` | Árvores grandes |
+| `small` | `t3`, `t4` | Árvores pequenas |
+| `large_stump` | `t5`, `t6` | Tocos grandes |
+| `small_stump` | `t7`, `t8` | Tocos pequenos |
+
+`defaults` define a mistura mínima. As entradas de `rules` são aplicadas em ordem quando métricas como `min_files`, `min_directories`, `min_depth`, `has_tests` e `has_docs` combinam com o perfil. Por fim, `repositories.NOME.trees` substitui quantidades para um projeto específico. Exemplo:
+
+```yaml
+repositories:
+  github-world:
+    trees:
+      large: 1
+      small: 2
+      large_stump: 1
+      small_stump: 2
+```
+
+As quantidades ficam fixas pelo YAML. Para cada item, o gerador escolhe de forma determinística uma das duas variantes e procura aleatoriamente uma posição válida no jardim. Isso cria variedade sem perder o controle da composição. A API fornece as métricas usadas pelas regras; ela não precisa reescrever o YAML. Depois de editar, use `python3 generate.py --offline` para conferir rapidamente.
 
 Quando há mais de três bairros, os dois com mais arquivos aparecem individualmente e os demais são somados na casa `(outros)`. A interpretação dos dados mantém até seis grupos; o layout compacto reúne esses grupos em até três casas sem perder a contagem de arquivos. Arquivos da raiz formam o bairro `(raiz)`. Repositórios vazios recebem uma construção com o rótulo `(sem arquivos)`.
 
