@@ -1,0 +1,555 @@
+# Catálogo de sprites. Coordenadas, linhas e colunas começam em zero.
+# width e height são medidos em tiles de 16 px.
+sources:
+  ilhas: assets/Ilhas.png
+  mapa: assets/mapa.png
+  arvores: assets/arvores.png
+  madeira: assets/madeira.png
+  grama: assets/grama.png
+sequences:
+- prefix: e
+  start: 1
+  source: ilhas
+  rows:
+  - 0
+  - 8
+  columns:
+  - 2
+  - 10
+- prefix: r
+  start: 1
+  source: ilhas
+  rows:
+  - 0
+  - 1
+  columns:
+  - 10
+  - 15
+- prefix: c
+  start: 1
+  source: ilhas
+  rows:
+  - 5
+  - 12
+  columns:
+  - 7
+  - 14
+- prefix: f
+  start: 1
+  source: ilhas
+  rows:
+  - 0
+  - 1
+  columns:
+  - 5
+  - 9
+tiles:
+  g1:
+    source: ilhas
+    col: 0
+    row: 1
+  g2:
+    source: ilhas
+    col: 1
+    row: 1
+  g3:
+    source: ilhas
+    col: 2
+    row: 1
+  g4:
+    source: ilhas
+    col: 0
+    row: 2
+  g5:
+    source: ilhas
+    col: 1
+    row: 2
+  g6:
+    source: ilhas
+    col: 2
+    row: 2
+  g7:
+    source: ilhas
+    col: 0
+    row: 3
+  g8:
+    source: ilhas
+    col: 1
+    row: 3
+  g9:
+    source: ilhas
+    col: 2
+    row: 3
+  h:
+    source: ilhas
+    col: 15
+    row: 9
+    height: 3
+  co1:
+    source: ilhas
+    col: 16
+    row: 9
+    width: 8
+    height: 7
+  co2:
+    source: ilhas
+    col: 24
+    row: 9
+    width: 8
+    height: 7
+  co3:
+    source: ilhas
+    col: 16
+    row: 0
+    width: 12
+    height: 9
+  cc1:
+    source: ilhas
+    col: 16
+    row: 25
+    width: 8
+    height: 7
+  cc2:
+    source: ilhas
+    col: 24
+    row: 25
+    width: 8
+    height: 7
+  cc3:
+    source: ilhas
+    col: 16
+    row: 16
+    width: 12
+    height: 9
+  cv1:
+    source: ilhas
+    col: 0
+    row: 25
+    width: 8
+    height: 7
+  cv2:
+    source: ilhas
+    col: 8
+    row: 25
+    width: 8
+    height: 7
+  cv3:
+    source: ilhas
+    col: 0
+    row: 16
+    width: 12
+    height: 9
+  p1:
+    source: ilhas
+    col: 12
+    row: 12
+    height: 3
+  p2:
+    source: ilhas
+    col: 13
+    row: 12
+    height: 3
+  p3:
+    source: ilhas
+    col: 15
+    row: 12
+    height: 3
+  p4:
+    source: ilhas
+    col: 10
+    row: 13
+    width: 2
+  p5:
+    source: ilhas
+    col: 10
+    row: 14
+    width: 2
+  p6:
+    source: ilhas
+    col: 10
+    row: 15
+    width: 2
+  x3:
+    source: ilhas
+    col: 5
+    row: 2
+    width: 3
+    height: 2
+  y1:
+    source: mapa
+    col: 50
+    row: 3
+    width: 9
+    height: 16
+  m1:
+    source: ilhas
+    col: 5
+    row: 8
+  m2:
+    source: ilhas
+    col: 5
+    row: 9
+  m3:
+    source: ilhas
+    col: 5
+    row: 10
+  m4:
+    source: ilhas
+    col: 5
+    row: 11
+  m5:
+    source: ilhas
+    col: 6
+    row: 8
+    width: 2
+    height: 2
+  m6:
+    source: ilhas
+    col: 8
+    row: 8
+    width: 2
+    height: 2
+  m7:
+    source: ilhas
+    col: 10
+    row: 8
+    height: 2
+  m8:
+    source: ilhas
+    col: 11
+    row: 8
+    height: 2
+  m9:
+    source: ilhas
+    col: 11
+    row: 10
+    height: 2
+  m11:
+    source: ilhas
+    col: 14
+    row: 7
+    height: 2
+  m12:
+    source: ilhas
+    col: 15
+    row: 7
+    height: 2
+  m13:
+    source: ilhas
+    col: 14
+    row: 8
+    height: 2
+  m14:
+    source: ilhas
+    col: 15
+    row: 8
+    height: 2
+  m15:
+    source: ilhas
+    col: 13
+    row: 6
+  m16:
+    source: ilhas
+    col: 13
+    row: 7
+  m17:
+    source: ilhas
+    col: 12
+    row: 8
+    width: 2
+  m18:
+    source: ilhas
+    col: 14
+    row: 2
+    width: 2
+    height: 3
+  m19:
+    source: ilhas
+    col: 14
+    row: 5
+    width: 2
+    height: 2
+  m20:
+    source: ilhas
+    col: 10
+    row: 6
+    height: 2
+  m21:
+    source: ilhas
+    col: 11
+    row: 6
+    width: 2
+  m22:
+    source: ilhas
+    col: 10
+    row: 4
+  m23:
+    source: ilhas
+    col: 11
+    row: 4
+  m24:
+    source: ilhas
+    col: 12
+    row: 4
+  m25:
+    source: ilhas
+    col: 10
+    row: 5
+  m26:
+    source: ilhas
+    col: 11
+    row: 5
+  m27:
+    source: ilhas
+    col: 12
+    row: 5
+  t1:
+    source: arvores
+    col: 0
+    row: 0
+    width: 3
+    height: 4
+  t2:
+    source: arvores
+    col: 3
+    row: 0
+    width: 3
+    height: 4
+  t3:
+    source: arvores
+    col: 6
+    row: 1
+    width: 2
+    height: 3
+  t4:
+    source: arvores
+    col: 8
+    row: 1
+    width: 2
+    height: 3
+  t5:
+    source: arvores
+    col: 0
+    row: 4
+    width: 3
+  t6:
+    source: arvores
+    col: 3
+    row: 4
+    width: 3
+  t7:
+    source: arvores
+    col: 7
+    row: 4
+  t8:
+    source: arvores
+    col: 8
+    row: 4
+  wood1:
+    source: madeira
+    col: 2
+    row: 2
+    width: 3
+  wood2:
+    source: madeira
+    col: 7
+    row: 2
+    width: 3
+    height: 2
+  wood3:
+    source: madeira
+    col: 6
+    row: 1
+    height: 2
+  floor1:
+    source: grama
+    col: 4
+    row: 6
+  floor2:
+    source: grama
+    col: 5
+    row: 6
+  floor3:
+    source: grama
+    col: 6
+    row: 6
+  floor4:
+    source: grama
+    col: 4
+    row: 7
+  floor5:
+    source: grama
+    col: 5
+    row: 7
+  floor6:
+    source: grama
+    col: 6
+    row: 7
+  floor7:
+    source: grama
+    col: 1
+    row: 6
+    width: 3
+    height: 4
+  floor8:
+    source: grama
+    col: 5
+    row: 3
+  floor9:
+    source: grama
+    col: 3
+    row: 3
+  floor10:
+    source: grama
+    col: 4
+    row: 3
+  flower1:
+    source: grama
+    col: 3
+    row: 3
+  flower2:
+    source: grama
+    col: 4
+    row: 3
+  flower3:
+    source: grama
+    col: 5
+    row: 3
+  grass1:
+    source: grama
+    col: 10
+    row: 1
+  grass2:
+    source: grama
+    col: 11
+    row: 1
+  grass3:
+    source: grama
+    col: 12
+    row: 1
+  grass4:
+    source: grama
+    col: 13
+    row: 1
+  grass5:
+    source: grama
+    col: 10
+    row: 2
+  grass6:
+    source: grama
+    col: 11
+    row: 2
+  grass7:
+    source: grama
+    col: 12
+    row: 2
+  grass8:
+    source: grama
+    col: 13
+    row: 2
+  farm_fence_tl:
+    source: ilhas
+    col: 5
+    row: 4
+  farm_fence_top:
+    source: ilhas
+    col: 6
+    row: 4
+  farm_fence_tr:
+    source: ilhas
+    col: 7
+    row: 4
+  farm_fence_left:
+    source: ilhas
+    col: 5
+    row: 5
+  farm_fence_right:
+    source: ilhas
+    col: 7
+    row: 5
+  farm_fence_bl:
+    source: ilhas
+    col: 5
+    row: 6
+  farm_fence_bottom:
+    source: ilhas
+    col: 6
+    row: 6
+  farm_fence_br:
+    source: ilhas
+    col: 7
+    row: 6
+  path1:
+    source: ilhas
+    col: 1
+    row: 6
+derived:
+  co3_compact:
+    from: co3
+    width: 10
+    height: 7
+  cc3_compact:
+    from: cc3
+    width: 10
+    height: 7
+  cv3_compact:
+    from: cv3
+    width: 10
+    height: 7
+groups:
+  activity:
+  - m1
+  - m2
+  - m3
+  - m4
+  - m5
+  - m6
+  - m7
+  - m8
+  - m9
+  health_full:
+  - m11
+  - m12
+  - m18
+  - m19
+  health_empty:
+  - m13
+  - m14
+  ambient:
+  - m15
+  - m16
+  - m17
+  - m20
+  - m21
+  signs:
+  - m22
+  - m23
+  - m24
+  - m25
+  - m26
+  - m27
+  flowers:
+  - flower1
+  - flower2
+  - flower3
+glossary:
+  g: Grass / tiles que formam as ilhas
+  e: Earth / terra
+  r: Rocks / pedras
+  c: Fences / cercas
+  f: Foliage / folhas e vegetação
+  co: Orange houses / casas laranja
+  cc: Gray houses / casas cinza
+  cv: Green houses / casas verdes
+  p: Bridges / pontes
+  x: Special tiles / entradas e outros elementos especiais
+  m: Map / elementos do mapa ou minimapa
+  h: horta / horta
+  t: Árvores
+  flower: Flores
+  farm_fence: Cerca da horta
+  wood: Madeira antiga
+  floor: Pisos antigos
+  grass: Grama antiga
+  y: Mapa
+  path: Caminhos de terra

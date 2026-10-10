@@ -1,779 +1,142 @@
+"""Carrega o catálogo declarativo de sprites definido em assets.yaml."""
 from pathlib import Path
+
 from PIL import Image
-from tiles import Tile, AssetManager
+import yaml
+
+from tiles import AssetManager, Tile
 
 
 BASE_DIR = Path(__file__).resolve().parent
-assets = AssetManager()
-
-
-# =========================
-# ASSET GLOSSARY
-# =========================
-
-ASSET_GLOSSARY = {
-    "g": "Grass / tiles que formam as ilhas",
-    "e": "Earth / terra",
-    "r": "Rocks / pedras",
-    "c": "Fences / cercas",
-    "f": "Foliage / folhas e vegetação",
-
-    "co": "Orange houses / casas laranja",
-    "cc": "Gray houses / casas cinza",
-    "cv": "Green houses / casas verdes",
-
-    "p": "Bridges / pontes",
-    "x": "Special tiles / entradas e outros elementos especiais",
-
-    "m": "Map / elementos do mapa ou minimapa",
-
-    "h": "horta / horta",
-}
-
-
-
-Ilhas = Image.open(
-    BASE_DIR / "assets/Ilhas.png"
-).convert("RGBA")
-
-mapa = Image.open(
-    BASE_DIR / "assets/mapa.png"
-).convert("RGBA")
-
-
-
-# =========================
-# GRASS / ISLAND
-# =========================
-
-# canto superior esquerdo
-assets.add(Tile(
-    "g1",
-    Ilhas,
-    col=0,
-    row=1
-))
-
-# borda superior
-assets.add(Tile(
-    "g2",
-    Ilhas,
-    col=1,   # ajustar
-    row=1
-))
-
-# canto superior direito
-assets.add(Tile(
-    "g3",
-    Ilhas,
-    col=2,   # ajustar
-    row=1
-))
-
-# borda esquerda
-assets.add(Tile(
-    "g4",
-    Ilhas,
-    col=0,   # ajustar
-    row=2
-))
-
-# centro
-assets.add(Tile(
-    "g5",
-    Ilhas,
-    col=1,
-    row=2
-))
-
-# borda direita
-assets.add(Tile(
-    "g6",
-    Ilhas,
-    col=2,   # ajustar
-    row=2
-))
-
-# canto inferior esquerdo
-assets.add(Tile(
-    "g7",
-    Ilhas,
-    col=0,   # ajustar
-    row=3
-))
-
-# borda inferior
-assets.add(Tile(
-    "g8",
-    Ilhas,
-    col=1,   # ajustar
-    row=3
-))
-
-# canto inferior direito
-assets.add(Tile(
-    "g9",
-    Ilhas,
-    col=2,   # ajustar
-    row=3
-))
-
-
-# =========================
-# horta
-# =========================
-
-assets.add(Tile(
-    "h",
-    Ilhas,
-    col=15,
-    row=9,
-    width=1,
-    height=3
-))
-
-
-# =========================
-# terra
-# =========================
-
-n = 1
-
-for row in range(0, 9):
-    for col in range(2, 11):
-        assets.add(Tile(
-            f"e{n}",
-            Ilhas,
-            col=col,
-            row=row
-        ))
-        n += 1
-
-
-# =========================
-# pedras
-# =========================
-
-n = 1
-
-for row in range(0, 2):
-    for col in range(10, 16):
-        assets.add(Tile(
-            f"r{n}",
-            Ilhas,
-            col=col,
-            row=row
-        ))
-        n += 1
-
-# =========================
-# cercas
-# =========================
-
-n = 1
-
-for row in range(5, 13):
-    for col in range(7, 15):
-        assets.add(Tile(
-            f"c{n}",
-            Ilhas,
-            col=col,
-            row=row
-        ))
-        n += 1
-
-
-# =========================
-# folhas
-# =========================
-
-n = 1
-
-for row in range(0, 2):
-    for col in range(5, 10):
-        assets.add(Tile(
-            f"f{n}",
-            Ilhas,
-            col=col,
-            row=row
-        ))
-        n += 1
-
-
-# =========================
-# casas laranja
-# =========================
-
-
-assets.add(Tile(
-    "co1",
-    Ilhas,
-    col=16,
-    row=9,
-    width=8,
-    height=7
-))
-
-
-assets.add(Tile(
-    "co2",
-    Ilhas,
-    col=24,
-    row=9,
-    width=8,
-    height=7
-))
-
-assets.add(Tile(
-    "co3",
-    Ilhas,
-    col=16,
-    row=0,
-    width=12,
-    height=9
-))
-
-
-
-# =========================
-# casas cinza
-# =========================
-
-assets.add(Tile(
-    "cc1",
-    Ilhas,
-    col=16,
-    row=25,
-    width=8,
-    height=7
-))
-
-assets.add(Tile(
-    "cc2",
-    Ilhas,
-    col=24,
-    row=25,
-    width=8,
-    height=7
-))
-
-assets.add(Tile(
-    "cc3",
-    Ilhas,
-    col=16,
-    row=16,
-    width=12,
-    height=9
-))
-
-
-# =========================
-# casas cinza
-# =========================
-
-
-assets.add(Tile(
-    "cv1",
-    Ilhas,
-    col=0,
-    row=25,
-    width=8,
-    height=7
-))
-
-
-assets.add(Tile(
-    "cv2",
-    Ilhas,
-    col=8,
-    row=25,
-    width=8,
-    height=7
-))
-
-assets.add(Tile(
-    "cv3",
-    Ilhas,
-    col=0,
-    row=16,
-    width=12,
-    height=9
-))
-
-
-# =========================
-# pontes
-# =========================
-
-assets.add(Tile(
-    "p1",
-    Ilhas,
-    col=12,
-    row=12,
-    width=1,
-    height=3
-))
-
-
-assets.add(Tile(
-    "p2",
-    Ilhas,
-    col=13,
-    row=12,
-    width=1,
-    height=3
-))
-
-assets.add(Tile(
-    "p3",
-    Ilhas,
-    col=15,
-    row=12,
-    width=1,
-    height=3
-))
-
-assets.add(Tile(
-    "p4",
-    Ilhas,
-    col=10,
-    row=13,
-    width=2,
-    height=1
-))
-
-assets.add(Tile(
-    "p5",
-    Ilhas,
-    col=10,
-    row=14,
-    width=2,
-    height=1
-))
-
-assets.add(Tile(
-    "p6",
-    Ilhas,
-    col=10,
-    row=15,
-    width=2,
-    height=1
-))
-
-
-
-
-# =========================
-# entrada
-# =========================
-
-assets.add(Tile(
-    "x3",
-    Ilhas,
-    col=5,
-    row=2,
-    width=3,
-    height=2
-))
-
-
-# =========================
-# mapa
-# =========================
-
-assets.add(Tile(
-    "y1",
-    mapa,
-    col=50,
-    row=3,
-    width = 9,
-    height=16
-))
-
-
-# =========================
-# barris
-# =========================
-
-#caixa1
-assets.add(Tile(
-    "m1",
-    Ilhas,
-    col=5,
-    row=8,
-    width = 1,
-    height=1
-))
-
-#caixa2
-assets.add(Tile(
-    "m2",
-    Ilhas,
-    col=5,
-    row=9,
-    width = 1,
-    height=1
-))
-
-#caixa3
-assets.add(Tile(
-    "m3",
-    Ilhas,
-    col=5,
-    row=10,
-    width = 1,
-    height=1
-))
-
-#caixa4
-assets.add(Tile(
-    "m4",
-    Ilhas,
-    col=5,
-    row=11,
-    width = 1,
-    height=1
-))
-
-#caixa grande
-assets.add(Tile(
-    "m5",
-    Ilhas,
-    col=6,
-    row=8,
-    width = 2,
-    height=2
-))
-
-#barril grande
-assets.add(Tile(
-    "m6",
-    Ilhas,
-    col=8,
-    row=8,
-    width = 2,
-    height=2
-))
-
-#caixa pequena
-assets.add(Tile(
-    "m7",
-    Ilhas,
-    col=10,
-    row=8,
-    width = 1,
-    height=2
-))
-
-#caixa media
-assets.add(Tile(
-    "m8",
-    Ilhas,
-    col=11,
-    row=8,
-    width = 1,
-    height=2
-))
-
-#barril media
-assets.add(Tile(
-    "m9",
-    Ilhas,
-    col=11,
-    row=10,
-    width = 1,
-    height=2
-))
-
- 
-#fonte cheia 1
-assets.add(Tile(
-    "m11",
-    Ilhas,
-    col=14,
-    row=7,
-    width = 1,
-    height=2
-))
-
-#fonte cheia 2
-assets.add(Tile(
-    "m12",
-    Ilhas,
-    col=15,
-    row=7,
-    width = 1,
-    height=2
-))
-
-
-#fonte vazia 1
-assets.add(Tile(
-    "m13",
-    Ilhas,
-    col=14,
-    row=8,
-    width = 1,
-    height=2
-))
-
-#fonte vazia 2
-assets.add(Tile(
-    "m14",
-    Ilhas,
-    col=15,
-    row=8,
-    width = 1,
-    height=2
-))
-
-#banco pequeno
-assets.add(Tile(
-    "m15",
-    Ilhas,
-    col=13,
-    row=6,
-    width = 1,
-    height=1
-))
-
-#banco grande
-assets.add(Tile(
-    "m16",
-    Ilhas,
-    col=13,
-    row=7,
-    width = 1,
-    height=1
-))
-
-#varal
-assets.add(Tile(
-    "m17",
-    Ilhas,
-    col=12,
-    row=8,
-    width = 2,
-    height=1
-))
-
-#fonte grande
-assets.add(Tile(
-    "m18",
-    Ilhas,
-    col=14,
-    row=2,
-    width = 2,
-    height=3
-))
-
-#fonte média
-assets.add(Tile(
-    "m19",
-    Ilhas,
-    col=14,
-    row=5,
-    width = 2,
-    height=2
-))
-
-#banco vertical
-assets.add(Tile(
-    "m20",
-    Ilhas,
-    col=10,
-    row=6,
-    width = 1,
-    height=2
-))
-
-#banco horizontal
-assets.add(Tile(
-    "m21",
-    Ilhas,
-    col=11,
-    row=6,
-    width = 2,
-    height=1
-))
-
-
-n = 22
-
-# placas
-for row in range(4, 6):
-    for col in range(10, 13):
-        assets.add(Tile(
-            f"m{n}",
-            Ilhas,
-            col=col,
-            row=row
-        ))
-        n += 1
-
-
-
-DECORATION_GROUPS = {
-    # Trabalho / atividade recente
-    "activity": [
-        "m1", "m2", "m3", "m4",
-        "m5", "m6", "m7", "m8", "m9"
-    ],
-
-    # Saúde / manutenção do projeto
-    "health_full": [
-        "m11", "m12", "m18", "m19"
-    ],
-
-    "health_empty": [
-        "m13", "m14"
-    ],
-
-    # Elementos ambientais
-    "ambient": [
-        "m15", "m16", "m17",
-        "m20", "m21"
-    ],
-
-    # Informações / marcos
-    "signs": [
-        "m22", "m23", "m24",
-        "m25", "m26", "m27"
-    ]
-}
-
-# Assets exclusivos do catálogo antigo; IDs da V2 têm prioridade.
-arvores = Image.open(BASE_DIR / "assets/arvores.png").convert("RGBA")
-# TREES
-# =========================
-
-assets.add(Tile(
-    "t1",
-    arvores,
-    col=0,
-    row=0,
-    width=3,
-    height=4
-))
-
-assets.add(Tile(
-    "t2",
-    arvores,
-    col=3,
-    row=0,
-    width=3,
-    height=4
-))
-
-assets.add(Tile(
-    "t3",
-    arvores,
-    col=6,
-    row=1,
-    width=2,
-    height=3
-))
-
-assets.add(Tile(
-    "t4",
-    arvores,
-    col=8,
-    row=1,
-    width=2,
-    height=3
-))
-
-
-assets.add(Tile(
-    "t5",
-    arvores,
-    col=0,
-    row=4,
-    width=3,
-    height=1
-))
-
-assets.add(Tile(
-    "t6",
-    arvores,
-    col=3,
-    row=4,
-    width=3,
-    height=1
-))
-
-assets.add(Tile(
-    "t7",
-    arvores,
-    col=7,
-    row=4,
-    width=1,
-    height=1
-))
-
-assets.add(Tile(
-    "t8",
-    arvores,
-    col=8,
-    row=4,
-    width=1,
-    height=1
-))
-
-
-madeira = Image.open(BASE_DIR / "assets/madeira.png").convert("RGBA")
-assets.add(Tile("wood1", madeira, col=2, row=2, width=3, height=1))
-assets.add(Tile("wood2", madeira, col=7, row=2, width=3, height=2))
-assets.add(Tile("wood3", madeira, col=6, row=1, width=1, height=2))
-
-# IDs próprios preservam a folhagem f1–f10 da V2.
-grama = Image.open(BASE_DIR / "assets/grama.png").convert("RGBA")
-assets.add(Tile("floor1", grama, col=4, row=6))
-assets.add(Tile("floor2", grama, col=5, row=6))
-assets.add(Tile("floor3", grama, col=6, row=6))
-assets.add(Tile("floor4", grama, col=4, row=7))
-assets.add(Tile("floor5", grama, col=5, row=7))
-assets.add(Tile("floor6", grama, col=6, row=7))
-assets.add(Tile("floor7", grama, col=1, row=6, width=3, height=4))
-assets.add(Tile("floor8", grama, col=5, row=3, width=1, height=1))
-assets.add(Tile("floor9", grama, col=3, row=3, width=1, height=1))
-assets.add(Tile("floor10", grama, col=4, row=3, width=1, height=1))
-# Flores da linha 3, colunas 3–5 do tileset de grama (índices zero-based).
-# Mantemos os IDs floor8–floor10 por compatibilidade e oferecemos nomes claros
-# para a composição controlada da floresta.
-assets.add(Tile("flower1", grama, col=3, row=3))
-assets.add(Tile("flower2", grama, col=4, row=3))
-assets.add(Tile("flower3", grama, col=5, row=3))
-assets.add(Tile("grass1", grama, col=10, row=1))
-assets.add(Tile("grass2", grama, col=11, row=1))
-assets.add(Tile("grass3", grama, col=12, row=1))
-assets.add(Tile("grass4", grama, col=13, row=1))
-assets.add(Tile("grass5", grama, col=10, row=2))
-assets.add(Tile("grass6", grama, col=11, row=2))
-assets.add(Tile("grass7", grama, col=12, row=2))
-assets.add(Tile("grass8", grama, col=13, row=2))
-
-DECORATION_GROUPS["flowers"] = ["flower1", "flower2", "flower3"]
-
-# Cerca modular da horta: cantos, laterais e segmentos horizontais.
-assets.add(Tile("farm_fence_tl", Ilhas, col=5, row=4))
-assets.add(Tile("farm_fence_top", Ilhas, col=6, row=4))
-assets.add(Tile("farm_fence_tr", Ilhas, col=7, row=4))
-assets.add(Tile("farm_fence_left", Ilhas, col=5, row=5))
-assets.add(Tile("farm_fence_right", Ilhas, col=7, row=5))
-assets.add(Tile("farm_fence_bl", Ilhas, col=5, row=6))
-assets.add(Tile("farm_fence_bottom", Ilhas, col=6, row=6))
-assets.add(Tile("farm_fence_br", Ilhas, col=7, row=6))
-
-ASSET_GLOSSARY.update({"t": "Árvores", "flower": "Flores", "farm_fence": "Cerca da horta", "wood": "Madeira antiga", "floor": "Pisos antigos", "grass": "Grama antiga", "y": "Mapa"})
-
-# Centro do bloco de terra; e1 é decorativo no tileset consolidado.
-assets.add(Tile('path1', Ilhas, col=1, row=6))
-ASSET_GLOSSARY['path'] = 'Caminhos de terra'
-
-# Variante compacta das casas maiores, preservando todos os recortes originais.
-for color in ('co', 'cc', 'cv'):
-    original = assets.get(f'{color}3')
-    compact = Tile(f'{color}3_compact', Ilhas, original.col, original.row, width=10, height=7)
-    compact.image = original.image.resize((160, 112), Image.Resampling.NEAREST)
-    assets.add(compact)
+CATALOG_PATH = BASE_DIR / "assets.yaml"
+
+
+def _mapping(value, label):
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} deve ser um objeto YAML.")
+    return value
+
+
+def _positive_int(value, label, default=1):
+    value = default if value is None else value
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{label} deve ser um inteiro positivo.")
+    return value
+
+
+def _coordinate(value, label):
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{label} deve ser um inteiro maior ou igual a zero.")
+    return value
+
+
+def load_asset_catalog(path=CATALOG_PATH):
+    """Cria o AssetManager e os grupos a partir de um catálogo YAML validado."""
+    path = Path(path)
+    with path.open(encoding="utf-8") as stream:
+        config = yaml.safe_load(stream) or {}
+    config = _mapping(config, str(path))
+
+    source_paths = _mapping(config.get("sources", {}), "sources")
+    sources = {}
+    for name, relative_path in source_paths.items():
+        if not isinstance(name, str) or not isinstance(relative_path, str):
+            raise ValueError("Cada source deve associar um nome a um caminho.")
+        image_path = path.parent / relative_path
+        if not image_path.is_file():
+            raise ValueError(f"Spritesheet inexistente para sources.{name}: {image_path}")
+        sources[name] = Image.open(image_path).convert("RGBA")
+
+    manager = AssetManager()
+
+    def add(name, definition):
+        if not isinstance(name, str) or not name:
+            raise ValueError("Todo asset precisa ter um nome não vazio.")
+        if name in manager.assets:
+            raise ValueError(f"Asset duplicado em {path.name}: {name}")
+        definition = _mapping(definition, f"assets.{name}")
+        unknown = set(definition) - {"source", "col", "row", "width", "height", "tile_size"}
+        if unknown:
+            raise ValueError(f"Campos desconhecidos em {name}: {', '.join(sorted(unknown))}")
+        source_name = definition.get("source")
+        if source_name not in sources:
+            raise ValueError(f"Source desconhecido em {name}: {source_name}")
+        col = _coordinate(definition.get("col"), f"{name}.col")
+        row = _coordinate(definition.get("row"), f"{name}.row")
+        width = _positive_int(definition.get("width"), f"{name}.width")
+        height = _positive_int(definition.get("height"), f"{name}.height")
+        tile_size = _positive_int(definition.get("tile_size"), f"{name}.tile_size", 16)
+        source = sources[source_name]
+        if (col + width) * tile_size > source.width or (row + height) * tile_size > source.height:
+            raise ValueError(f"Recorte de {name} ultrapassa o spritesheet {source_name}.")
+        manager.add(Tile(name, source, col, row, width, height, tile_size))
+
+    sequences = config.get("sequences", [])
+    if not isinstance(sequences, list):
+        raise ValueError("sequences deve ser uma lista.")
+    for index, sequence in enumerate(sequences):
+        sequence = _mapping(sequence, f"sequences[{index}]")
+        unknown = set(sequence) - {"prefix", "start", "source", "rows", "columns", "width", "height", "tile_size"}
+        if unknown:
+            raise ValueError(f"Campos desconhecidos em sequences[{index}]: {', '.join(sorted(unknown))}")
+        prefix = sequence.get("prefix")
+        start = _positive_int(sequence.get("start"), f"sequences[{index}].start")
+        rows = sequence.get("rows")
+        columns = sequence.get("columns")
+        if not isinstance(prefix, str) or not prefix:
+            raise ValueError(f"sequences[{index}].prefix deve ser texto não vazio.")
+        if not isinstance(rows, list) or len(rows) != 2 or not isinstance(columns, list) or len(columns) != 2:
+            raise ValueError(f"sequences[{index}] precisa de rows e columns no formato [início, fim].")
+        first_row, last_row = (_coordinate(value, f"sequences[{index}].rows") for value in rows)
+        first_col, last_col = (_coordinate(value, f"sequences[{index}].columns") for value in columns)
+        if last_row < first_row or last_col < first_col:
+            raise ValueError(f"Intervalo invertido em sequences[{index}].")
+        number = start
+        base = {key: value for key, value in sequence.items() if key not in {"prefix", "start", "rows", "columns"}}
+        for row in range(first_row, last_row + 1):
+            for col in range(first_col, last_col + 1):
+                add(f"{prefix}{number}", {**base, "col": col, "row": row})
+                number += 1
+
+    for name, definition in _mapping(config.get("tiles", {}), "tiles").items():
+        add(name, definition)
+
+    for name, definition in _mapping(config.get("derived", {}), "derived").items():
+        definition = _mapping(definition, f"derived.{name}")
+        unknown = set(definition) - {"from", "width", "height"}
+        if unknown:
+            raise ValueError(f"Campos desconhecidos em derived.{name}: {', '.join(sorted(unknown))}")
+        parent_name = definition.get("from")
+        if parent_name not in manager.assets:
+            raise ValueError(f"Asset-base desconhecido em derived.{name}: {parent_name}")
+        if name in manager.assets:
+            raise ValueError(f"Asset duplicado em {path.name}: {name}")
+        parent = manager.get(parent_name)
+        width = _positive_int(definition.get("width"), f"derived.{name}.width")
+        height = _positive_int(definition.get("height"), f"derived.{name}.height")
+        derived = Tile(name, parent.tileset, parent.col, parent.row, width, height, parent.tile_size)
+        derived.image = parent.image.resize(
+            (width * parent.tile_size, height * parent.tile_size), Image.Resampling.NEAREST
+        )
+        manager.add(derived)
+
+    groups = _mapping(config.get("groups", {}), "groups")
+    for group_name, names in groups.items():
+        if not isinstance(names, list) or not all(isinstance(name, str) for name in names):
+            raise ValueError(f"groups.{group_name} deve ser uma lista de nomes.")
+        missing = [name for name in names if name not in manager.assets]
+        if missing:
+            raise ValueError(f"Assets inexistentes em groups.{group_name}: {', '.join(missing)}")
+
+    glossary = _mapping(config.get("glossary", {}), "glossary")
+    return manager, groups, glossary, sources
+
+
+assets, DECORATION_GROUPS, ASSET_GLOSSARY, SOURCES = load_asset_catalog()
+
+# Compatibilidade temporária com código externo que importava os spritesheets.
+Ilhas = SOURCES["ilhas"]
+mapa = SOURCES["mapa"]
+arvores = SOURCES["arvores"]
+madeira = SOURCES["madeira"]
+grama = SOURCES["grama"]

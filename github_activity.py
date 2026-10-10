@@ -31,11 +31,16 @@ class GitHubClient:
             page += 1
         return repos[:limit]
 
-    def collect(self, username=USERNAME, limit=1):
+    def repository(self, username, name):
+        """Busca diretamente um repositório público pelo nome."""
+        return self.get(f"/repos/{quote(username, safe='')}/{quote(name, safe='')}")
+
+    def collect(self, username=USERNAME, limit=1, repo_name=None):
         now = datetime.now(timezone.utc)
         since = (now - timedelta(days=30)).isoformat()
         result = []
-        for repo in self.repositories(username, limit):
+        selected = [self.repository(username, repo_name)] if repo_name else self.repositories(username, limit)
+        for repo in selected:
             path = f"/repos/{repo['full_name']}"
             warnings = []
             def optional(suffix, default, **params):

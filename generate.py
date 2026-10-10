@@ -31,6 +31,7 @@ def main():
     source.add_argument('--offline', action='store_true', help='Usa a árvore local; atividade e linguagens não são consultadas.')
     source.add_argument('--data', type=Path, help='Lê snapshot JSON (lista de repositórios).')
     parser.add_argument('--username', default=USERNAME)
+    parser.add_argument('--repo', help='Nome exato de um repositório público para gerar uma única ilha.')
     parser.add_argument(
         '--limit',
         type=int,
@@ -48,7 +49,7 @@ def main():
         data = json.loads(args.data.read_text())[:args.limit]
     else:
         try:
-            data = GitHubClient().collect(args.username,args.limit)
+            data = GitHubClient().collect(args.username,args.limit,args.repo)
         except requests.RequestException as exc:
             print(f'Falha ao consultar GitHub: {exc}. Use --offline ou --data SNAPSHOT.json.', file=sys.stderr)
             return 1

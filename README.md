@@ -19,6 +19,12 @@ Por padrão, consulta apenas o repositório público mais recentemente atualizad
 python3 generate.py --username SEU_USUARIO
 ```
 
+Para escolher diretamente um repositório público:
+
+```bash
+python3 generate.py --username SEU_USUARIO --repo NOME_DO_REPOSITORIO
+```
+
 Para voltar a mostrar dois ou três repositórios, use `--limit 2` ou `--limit 3`. Alterar o valor padrão de `get_top_repositories()` 
 A variável opcional `GITHUB_TOKEN` autentica as consultas e aumenta o limite de requests. O token nunca é salvo no snapshot. O workflow usa o token disponibilizado pelo GitHub Actions e atualiza `map.png` e `world.gif` a cada seis horas.
 
@@ -113,7 +119,7 @@ flowers:
 
 ## Horta
 
-A horta compartilha a honeycomb da praça com o poço. O canteiro usa o asset `h` registrado em `assets.py`; a composição repete até três canteiros, monta uma cerca de madeira, posiciona pedras somente no lado externo da cerca e desenha flores numa camada acima dos canteiros. Barris ficam agrupados como um pequeno depósito, enquanto a folhagem adicional completa essa área. A configuração fica em `world.yaml`:
+A horta compartilha a honeycomb da praça com o poço. O canteiro usa o asset `h` registrado em `assets.yaml`; a composição repete até três canteiros, monta uma cerca de madeira, posiciona pedras somente no lado externo da cerca e desenha flores numa camada acima dos canteiros. Barris ficam agrupados como um pequeno depósito, enquanto a folhagem adicional completa essa área. A configuração fica em `world.yaml`:
 
 ```yaml
 farm:
@@ -134,19 +140,17 @@ farm:
 
 `enabled` adiciona ou remove a horta da praça, `beds` controla de um a três canteiros e `flowers` controla quantas posições recebem flores, até o número de espaços disponível sobre os canteiros. `extra_rocks` e `grass` regulam a densidade da área, enquanto `barrels` aceita de zero a quatro barris organizados. As variantes e posições continuam determinísticas.
 
-Quando há mais de três bairros, os dois com mais arquivos aparecem individualmente e os demais são somados na casa `(outros)`. A interpretação dos dados mantém até seis grupos; o layout compacto reúne esses grupos em até três casas sem perder a contagem de arquivos. Arquivos da raiz formam o bairro `(raiz)`. Repositórios vazios recebem uma construção com o rótulo `(sem arquivos)`.
-
 Os assets de casas 1 e 2 têm a mesma área de recorte, mas desenhos diferentes; a variante 3 é maior. As métricas orientam escolhas visuais, sem representar uma medida formal de qualidade do projeto. Dependências são contadas por manifestos detectados, sem analisar pacotes individuais.
 
 A coleta usa a árvore da branch padrão, linguagens e até 100 commits dos últimos 30 dias. Essa contagem de commits é limitada a 100. Árvores truncadas ou indisponíveis recebem `*` no nome da ilha; suas contagens são parciais. Falhas nas métricas auxiliares geram avisos e não se tornam atividade zero. Se a listagem principal falhar, o comando termina com erro e orienta usar `--offline` ou um snapshot. Ele não substitui repositórios reais por nomes fictícios.
 
 ## Crescimento em honeycomb
 
-Cada colônia começa com uma praça que reúne o poço e a horta, recebe até três módulos de casas e um jardim: no máximo cinco hexágonos por repositório. Documentação, testes e dependências compartilham a praça, evitando módulos extras. A escolha considera o nome do repositório e a identidade do módulo, com variações reproduzíveis que deixam braços e espaços vazios no contorno.
+Cada repositório usa três hexágonos: uma casa central representa o projeto inteiro, a floresta fica em `(-1, 1)` e o poço com a horta fica em `(1, -1)`. As duas posições são opostas em relação à casa `(0, 0)`, mantendo a construção principal no centro. A decoração considera o nome do repositório e a identidade do módulo, portanto as variações são reproduzíveis.
 
 Cada hexágono tem 16 × 16 tiles, com 20% menos área de terreno que a versão anterior. As casas 1 e 2 mantêm seus sprites; a casa 3 usa uma variante de 10 × 7 tiles, redimensionada com vizinho mais próximo para preservar a nitidez da pixel art. Os recortes originais continuam no catálogo. Os lados compartilhados desaparecem na renderização: a ilha tem terreno contínuo, jardins com tonalidade suave e uma costa em degraus de pixel art. Os caminhos ligam as portas e os módulos, contornam construções e chegam às pontes. O personagem caminha sobre um trecho real desses caminhos.
 
-Aumentar a quantidade de arquivos de um bairro troca o sprite sem alterar suas coordenadas hexagonais quando os bairros visíveis permanecem os mesmos. Mudanças no ranking dos dois maiores bairros podem mudar o agrupamento e o layout. Adicionar ou remover diretórios pode reorganizar módulos posteriores: esta versão recalcula o layout e ainda não persiste um histórico de posições. A vegetação do jardim também reflete a profundidade da árvore e o tempo sem atualização. O crescimento prioriza posições próximas da praça para manter a composição compacta.
+Aumentar a quantidade total de arquivos pode trocar o tamanho da casa sem alterar as coordenadas dos três módulos. A vegetação da floresta reflete as regras configuradas em `world.yaml`.
 
 O PNG e o GIF têm fundo transparente. No GIF, um índice da paleta é reservado para transparência em todos os frames; o contorno dos rótulos permite lê-los sobre fundos claros ou escuros.
 
@@ -157,14 +161,38 @@ O PNG e o GIF têm fundo transparente. No GIF, um índice da paleta é reservado
 - `layout.py`: posiciona ilhas, construções, caminhos e decorações respeitando o tamanho dos sprites.
 - `renderer.py`: desenha camadas, etiquetas, pontes e animação do personagem.
 - `generate.py`: coordena o processo e fornece as opções de linha de comando.
-- `assets.py`: catálogo único, preservando todos os IDs da antiga V2 e incluindo assets exclusivos da configuração antiga.
+- `assets.yaml`: catálogo declarativo com spritesheets, recortes, sequências, derivados e grupos.
+- `assets.py`: carrega e valida `assets.yaml`, abre as imagens e cria os objetos `Tile`.
 - `tiles.py`: classes `Tile` e `AssetManager`.
 
 Os assets ficam em `assets/`. Os frames do personagem ficam em `assets/me/frente`, `assets/me/costas` e `assets/me/lado`; a animação atual usa os frames laterais, ordenados pelo nome do arquivo.
 
 ## Adicionar assets
 
-Registre o sprite em `assets.py` com `assets.add(Tile(...))`. `col` e `row` indicam a posição no tileset; `width` e `height` são medidas em tiles de 16 pixels. Use um ID novo e, para decoração, adicione-o ao grupo apropriado ou às regras de `layout.py`.
+Registre o sprite em `assets.yaml`. `col` e `row` começam em zero; `width` e `height` são medidos em tiles de 16 pixels e valem `1` quando omitidos:
+
+```yaml
+tiles:
+  minha_placa:
+    source: ilhas
+    col: 10
+    row: 4
+    width: 1
+    height: 1
+```
+
+O nome de `source` precisa existir em `sources`. Para criar uma grade numerada, use `sequences`; os limites de `rows` e `columns` são inclusivos:
+
+```yaml
+sequences:
+  - prefix: exemplo
+    start: 1
+    source: ilhas
+    rows: [0, 1]
+    columns: [2, 4]
+```
+
+Esse exemplo cria `exemplo1` até `exemplo6`. `derived` redimensiona um asset existente com vizinho mais próximo, e `groups` reúne nomes usados pela decoração. O carregador rejeita nomes duplicados, fontes ou grupos inexistentes, valores inválidos e recortes fora da imagem.
 
 Os IDs `g`, `e`, `r`, `c`, `f`, `co`, `cc`, `cv`, `p`, `x`, `y` e `m` mantêm o catálogo V2. As árvores antigas usam `t1` a `t8`; os pisos antigos usam `floor1` a `floor10`, a grama antiga `grass1` a `grass8` e as construções de madeira `wood1` a `wood3`. Os nomes próprios evitam substituir os IDs da V2. `path1` é o tile de terra usado nos caminhos. As variantes `co3_compact`, `cc3_compact` e `cv3_compact` são derivadas dos sprites originais para o layout menor.
 

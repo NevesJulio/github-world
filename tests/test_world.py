@@ -180,6 +180,16 @@ class ProfileTests(unittest.TestCase):
 
 
 class CollectionTests(unittest.TestCase):
+    def test_named_repository_is_selected_directly(self):
+        repo = {'name': 'chosen', 'full_name': 'user/chosen', 'default_branch': 'main'}
+        client = GitHubClient()
+        with patch.object(client, 'repository', return_value=repo) as selected, patch.object(
+            client, 'get', side_effect=[{'tree': []}, {}, []]
+        ):
+            data = client.collect('user', 3, 'chosen')
+        selected.assert_called_once_with('user', 'chosen')
+        self.assertEqual([item['name'] for item in data], ['chosen'])
+
     def test_repository_icon_uses_matching_root_png(self):
         repo = {'name': 'project', 'full_name': 'user/project', 'default_branch': 'main', 'fork': False}
         tree = {'tree': [{'path': 'project.png', 'type': 'blob', 'sha': 'icon-sha'}]}

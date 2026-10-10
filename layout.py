@@ -224,7 +224,29 @@ def build_colony(profile):
                 for x,y in positions:
                     if island.place(name,x,y,m.cells):
                         break
-        if m.kind == 'garden':
+        if m.kind == 'house':
+            cx, cy = m.center
+            # Pátio da casa: posições manuais mantêm a entrada e o caminho
+            # livres. Cada tupla contém (asset, deslocamento x, deslocamento y).
+            house_decor = [
+                ('m21', -6, 3),      # banco à esquerda
+                ('m22', 4, 2),       # placa próxima da entrada
+                ('m1', -6, -3),      # caixas nas laterais
+                ('m2', 5, -3),
+                ('r2', -5, -5),      # pedras ao redor da construção
+                ('r5', 4, -5),
+                ('r8', -6, 0),
+                ('r10', 5, 0),
+                ('r4', -5, 4),
+                ('r7', 4, 3),
+                ('f2', -6, -1),      # vegetação discreta no pátio
+                ('f6', 5, -1),
+                ('flower2', -5, 2),
+                ('flower3', 4, -2),
+            ]
+            for name, dx, dy in house_decor:
+                island.place(name, cx+dx, cy+dy, m.cells)
+        elif m.kind == 'garden':
             decorate_exact(trees)
             decorate_exact(flowers)
             decorate([f'f{i}' for i in range(1,11)],6 + min(profile.max_depth,3))
