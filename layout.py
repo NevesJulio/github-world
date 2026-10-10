@@ -5,7 +5,7 @@ import hashlib
 import random
 from assets import assets, DECORATION_GROUPS
 from repo_profile import DirectoryProfile
-from visual_config import tree_assets_for
+from visual_config import flower_assets_for, tree_assets_for
 
 TILE_SIZE = 16
 DIRECTIONS = ((1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1))
@@ -167,6 +167,7 @@ def build_colony(profile):
     connect(island,modules[0].anchor,island.entrance)
     connect(island,modules[0].anchor,island.exit)
     trees = tree_assets_for(profile)
+    flowers = flower_assets_for(profile)
     for m in modules:
         rng = random.Random(f'{profile.name}/{m.key}')
         def decorate(names, amount):
@@ -189,6 +190,7 @@ def build_colony(profile):
                         break
         if m.kind == 'garden':
             decorate_exact(trees)
+            decorate_exact(flowers)
             decorate([f'f{i}' for i in range(1,11)],6 + min(profile.max_depth,3))
         elif m.kind == 'plaza':
             decorate(DECORATION_GROUPS['activity'],min(8,1+profile.recent_commits//5) if profile.recent_commits else 0)

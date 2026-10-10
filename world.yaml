@@ -18,7 +18,7 @@ vegetation:
         min_files: 40
       trees:
         large: 1
-        small: 2
+        small: 3
         large_stump: 1
         small_stump: 1
 
@@ -41,7 +41,26 @@ vegetation:
   repositories:
     github-world:
       trees:
-        large: 1
-        small: 2
-        large_stump: 1
-        small_stump: 2
+        large: 3
+        small: 4
+        large_stump: 2
+        small_stump: 5
+
+  flowers:
+    assets: [flower1, flower2, flower3]
+    default_density: 5
+
+    rules:
+      - when:
+          min_files: 40
+        density: 8
+
+      - when:
+          min_depth: 2
+          has_docs: true
+        density: 10
+
+    # Esta substituição tem prioridade sobre o padrão e as regras acima.
+    repositories:
+      github-world:
+        density: 12

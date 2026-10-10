@@ -98,6 +98,20 @@ repositories:
 
 As quantidades ficam fixas pelo YAML. Para cada item, o gerador escolhe de forma determinística uma das duas variantes e procura aleatoriamente uma posição válida no jardim. Isso cria variedade sem perder o controle da composição. A API fornece as métricas usadas pelas regras; ela não precisa reescrever o YAML. Depois de editar, use `python3 generate.py --offline` para conferir rapidamente.
 
+As flores usam os tiles `(3,3)`, `(4,3)` e `(5,3)` de `assets/grama.png`, registrados como `flower1`, `flower2` e `flower3`. A quantidade é controlada separadamente pela densidade:
+
+```yaml
+flowers:
+  assets: [flower1, flower2, flower3]
+  default_density: 5
+
+  repositories:
+    github-world:
+      density: 12
+```
+
+`default_density` é a quantidade padrão. `rules` pode alterar esse valor usando as mesmas condições das árvores, e `repositories.NOME.density` define a quantidade exata para um repositório. A escolha das variantes e posições é aleatória, mas estável para o mesmo nome de projeto.
+
 Quando há mais de três bairros, os dois com mais arquivos aparecem individualmente e os demais são somados na casa `(outros)`. A interpretação dos dados mantém até seis grupos; o layout compacto reúne esses grupos em até três casas sem perder a contagem de arquivos. Arquivos da raiz formam o bairro `(raiz)`. Repositórios vazios recebem uma construção com o rótulo `(sem arquivos)`.
 
 Os assets de casas 1 e 2 têm a mesma área de recorte, mas desenhos diferentes; a variante 3 é maior. As métricas orientam escolhas visuais, sem representar uma medida formal de qualidade do projeto. Dependências são contadas por manifestos detectados, sem analisar pacotes individuais.

@@ -722,6 +722,12 @@ assets.add(Tile("floor7", grama, col=1, row=6, width=3, height=4))
 assets.add(Tile("floor8", grama, col=5, row=3, width=1, height=1))
 assets.add(Tile("floor9", grama, col=3, row=3, width=1, height=1))
 assets.add(Tile("floor10", grama, col=4, row=3, width=1, height=1))
+# Flores da linha 3, colunas 3–5 do tileset de grama (índices zero-based).
+# Mantemos os IDs floor8–floor10 por compatibilidade e oferecemos nomes claros
+# para a composição controlada da floresta.
+assets.add(Tile("flower1", grama, col=3, row=3))
+assets.add(Tile("flower2", grama, col=4, row=3))
+assets.add(Tile("flower3", grama, col=5, row=3))
 assets.add(Tile("grass1", grama, col=10, row=1))
 assets.add(Tile("grass2", grama, col=11, row=1))
 assets.add(Tile("grass3", grama, col=12, row=1))
@@ -731,7 +737,8 @@ assets.add(Tile("grass6", grama, col=11, row=2))
 assets.add(Tile("grass7", grama, col=12, row=2))
 assets.add(Tile("grass8", grama, col=13, row=2))
 
-ASSET_GLOSSARY.update({"t": "Árvores", "wood": "Madeira antiga", "floor": "Pisos antigos", "grass": "Grama antiga", "y": "Mapa"})
+DECORATION_GROUPS["flowers"] = ["flower1", "flower2", "flower3"]
+ASSET_GLOSSARY.update({"t": "Árvores", "flower": "Flores", "wood": "Madeira antiga", "floor": "Pisos antigos", "grass": "Grama antiga", "y": "Mapa"})
 
 # Centro do bloco de terra; e1 é decorativo no tileset consolidado.
 assets.add(Tile('path1', Ilhas, col=1, row=6))

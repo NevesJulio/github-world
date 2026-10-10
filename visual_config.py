@@ -64,3 +64,26 @@ def tree_assets_for(profile, config=None):
             raise ValueError(f'Nenhum asset configurado para vegetation.assets.{category}')
         selected.extend(rng.choice(variants) for _ in range(counts[category]))
     return selected
+
+
+def flower_density(profile, config=None):
+    vegetation = (config or load_visual_config()).get('vegetation', {})
+    flowers = vegetation.get('flowers', {})
+    density = flowers.get('default_density', 0)
+    for rule in flowers.get('rules', []):
+        if rule_matches(profile, rule.get('when', {})):
+            density = rule.get('density', density)
+    override = flowers.get('repositories', {}).get(profile.name, {})
+    density = override.get('density', density)
+    return max(0, min(40, int(density)))
+
+
+def flower_assets_for(profile, config=None):
+    config = config or load_visual_config()
+    flowers = config.get('vegetation', {}).get('flowers', {})
+    variants = flowers.get('assets', [])
+    density = flower_density(profile, config)
+    if density and not variants:
+        raise ValueError('Nenhum asset configurado para vegetation.flowers.assets')
+    rng = random.Random(f'{profile.name}/flower-variants')
+    return [rng.choice(variants) for _ in range(density)]

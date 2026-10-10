@@ -10,7 +10,7 @@ from github_activity import GitHubClient
 from repo_profile import DirectoryProfile, profile_repository
 from layout import DIRECTIONS, build_layout
 from renderer import save_world
-from visual_config import tree_assets_for, tree_counts
+from visual_config import flower_assets_for, flower_density, tree_assets_for, tree_counts
 
 
 def repository(name='example', count=6):
@@ -152,6 +152,23 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(len(selected), 6)
         self.assertTrue(set(selected[:2]) <= {'t1', 't2'})
         self.assertTrue(set(selected[-3:]) <= {'t7', 't8'})
+
+    def test_flower_density_uses_rules_and_repository_override(self):
+        profile = profile_repository(repository(name='custom', count=3))
+        config = {
+            'vegetation': {
+                'flowers': {
+                    'assets': ['flower1', 'flower2', 'flower3'],
+                    'default_density': 2,
+                    'rules': [{'when': {'min_files': 40}, 'density': 5}],
+                    'repositories': {'custom': {'density': 7}},
+                }
+            }
+        }
+        self.assertEqual(flower_density(profile, config), 7)
+        selected = flower_assets_for(profile, config)
+        self.assertEqual(len(selected), 7)
+        self.assertTrue(set(selected) <= {'flower1', 'flower2', 'flower3'})
 
 
 class CollectionTests(unittest.TestCase):
