@@ -112,6 +112,29 @@ flowers:
 
 `default_density` é a quantidade padrão. `rules` pode alterar esse valor usando as mesmas condições das árvores, e `repositories.NOME.density` define a quantidade exata para um repositório. A escolha das variantes e posições é aleatória, mas estável para o mesmo nome de projeto.
 
+## Horta
+
+A horta compartilha a honeycomb da praça com o poço. O canteiro usa o asset `h` registrado em `assets.py`; a composição repete até três canteiros, monta uma cerca de madeira, posiciona pedras somente no lado externo da cerca e desenha flores numa camada acima dos canteiros. Barris ficam agrupados como um pequeno depósito, enquanto a folhagem adicional completa essa área. A configuração fica em `world.yaml`:
+
+```yaml
+farm:
+  defaults:
+    enabled: true
+    beds: 3
+    flowers: 6
+    extra_rocks: 5
+    grass: 8
+    barrels: 3
+
+  repositories:
+    github-world:
+      enabled: true
+      beds: 3
+      flowers: 7
+```
+
+`enabled` adiciona ou remove a horta da praça, `beds` controla de um a três canteiros e `flowers` controla quantas posições recebem flores, até o número de espaços disponível sobre os canteiros. `extra_rocks` e `grass` regulam a densidade da área, enquanto `barrels` aceita de zero a quatro barris organizados. As variantes e posições continuam determinísticas.
+
 Quando há mais de três bairros, os dois com mais arquivos aparecem individualmente e os demais são somados na casa `(outros)`. A interpretação dos dados mantém até seis grupos; o layout compacto reúne esses grupos em até três casas sem perder a contagem de arquivos. Arquivos da raiz formam o bairro `(raiz)`. Repositórios vazios recebem uma construção com o rótulo `(sem arquivos)`.
 
 Os assets de casas 1 e 2 têm a mesma área de recorte, mas desenhos diferentes; a variante 3 é maior. As métricas orientam escolhas visuais, sem representar uma medida formal de qualidade do projeto. Dependências são contadas por manifestos detectados, sem analisar pacotes individuais.
@@ -120,7 +143,7 @@ A coleta usa a árvore da branch padrão, linguagens e até 100 commits dos últ
 
 ## Crescimento em honeycomb
 
-Cada colônia começa com uma praça, recebe até três módulos de casas e um jardim: no máximo cinco hexágonos por repositório. Documentação, testes e dependências compartilham a praça, evitando módulos extras. A escolha considera o nome do repositório e a identidade do módulo, com variações reproduzíveis que deixam braços e espaços vazios no contorno.
+Cada colônia começa com uma praça que reúne o poço e a horta, recebe até três módulos de casas e um jardim: no máximo cinco hexágonos por repositório. Documentação, testes e dependências compartilham a praça, evitando módulos extras. A escolha considera o nome do repositório e a identidade do módulo, com variações reproduzíveis que deixam braços e espaços vazios no contorno.
 
 Cada hexágono tem 16 × 16 tiles, com 20% menos área de terreno que a versão anterior. As casas 1 e 2 mantêm seus sprites; a casa 3 usa uma variante de 10 × 7 tiles, redimensionada com vizinho mais próximo para preservar a nitidez da pixel art. Os recortes originais continuam no catálogo. Os lados compartilhados desaparecem na renderização: a ilha tem terreno contínuo, jardins com tonalidade suave e uma costa em degraus de pixel art. Os caminhos ligam as portas e os módulos, contornam construções e chegam às pontes. O personagem caminha sobre um trecho real desses caminhos.
 

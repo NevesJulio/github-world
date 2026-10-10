@@ -5,7 +5,7 @@ import hashlib
 import random
 from assets import assets, DECORATION_GROUPS
 from repo_profile import DirectoryProfile
-from visual_config import flower_assets_for, tree_assets_for
+from visual_config import farm_settings, flower_assets_for, tree_assets_for
 
 TILE_SIZE = 16
 DIRECTIONS = ((1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1))
@@ -42,6 +42,7 @@ class Island:
     width: int
     height: int
     objects: list = field(default_factory=list)
+    overlays: list = field(default_factory=list)
     paths: set = field(default_factory=set)
     occupied: set = field(default_factory=set)
     districts: list = field(default_factory=list)
@@ -57,6 +58,14 @@ class Island:
             return False
         self.occupied.update(cells)
         self.objects.append((name, x, y))
+        return True
+
+    def overlay(self, name, x, y, allowed=None):
+        tile = assets.get(name)
+        cells = {(a, b) for a in range(x, x+tile.width) for b in range(y, y+tile.height)}
+        if not cells <= (self.ground if allowed is None else allowed):
+            return False
+        self.overlays.append((name, x, y))
         return True
 
 
@@ -116,6 +125,7 @@ def build_colony(profile):
     for district in sorted(visible,key=lambda d: d.name):
         attach(modules,district.name,'house',profile.name)
     attach(modules,'garden0','garden',profile.name)
+    farm = farm_settings(profile)
     terrain = set().union(*(hex_cells(m.q, m.r) for m in modules))
     min_x, min_y = min(x for x,y in terrain), min(y for x,y in terrain)
     shift_x, shift_y = -min_x, -min_y
@@ -146,8 +156,48 @@ def build_colony(profile):
         elif m.kind == 'plaza':
             name = 'm13' if (profile.days_inactive or 0) > 90 else 'm18'
             if profile.days_inactive is None:
-                name = 'm21'
-            island.place(name,cx-1,cy-2,m.cells)
+                name = 'm18'
+            island.place(name,cx-5,cy-2,m.cells)
+            if farm['enabled']:
+                # A horta divide a praça com o poço. Pedras formam o limite
+                # visual e as flores usam uma camada acima dos canteiros.
+                bed_xs = list(range(cx+1,cx+4))[:farm['beds']]
+                bed_top, bed_bottom = cy-2, cy
+                farm_rng = random.Random(f'{profile.name}/farm')
+                for x in bed_xs:
+                    island.place('h',x,bed_top,m.cells)
+                fence_left, fence_right = bed_xs[0]-1, bed_xs[-1]+1
+                fence_top, fence_bottom = bed_top-1, bed_bottom+1
+                island.place('farm_fence_tl',fence_left,fence_top,m.cells)
+                island.place('farm_fence_tr',fence_right,fence_top,m.cells)
+                island.place('farm_fence_bl',fence_left,fence_bottom,m.cells)
+                island.place('farm_fence_br',fence_right,fence_bottom,m.cells)
+                for x in range(fence_left+1,fence_right):
+                    island.place('farm_fence_top',x,fence_top,m.cells)
+                    island.place('farm_fence_bottom',x,fence_bottom,m.cells)
+                for y in range(fence_top+1,fence_bottom):
+                    island.place('farm_fence_left',fence_left,y,m.cells)
+                    island.place('farm_fence_right',fence_right,y,m.cells)
+
+                # As pedras são sorteadas apenas no anel exterior da cerca.
+                outer_rocks = (
+                    [(x,fence_top-1) for x in range(fence_left-1,fence_right+2)]
+                    + [(x,fence_bottom+1) for x in range(fence_left-1,fence_right+2)]
+                    + [(fence_left-1,y) for y in range(fence_top,fence_bottom+1)]
+                    + [(fence_right+1,y) for y in range(fence_top,fence_bottom+1)]
+                )
+                outer_rocks = list(dict.fromkeys(outer_rocks))
+                farm_rng.shuffle(outer_rocks)
+                placed_rocks = 0
+                for x,y in outer_rocks:
+                    if island.place(f'r{farm_rng.randint(1,10)}',x,y,m.cells):
+                        placed_rocks += 1
+                        if placed_rocks >= farm['extra_rocks']:
+                            break
+                flower_spots = [(x,y) for y in range(bed_top,bed_bottom+1) for x in bed_xs]
+                farm_rng.shuffle(flower_spots)
+                for x,y in flower_spots[:farm['flowers']]:
+                    island.overlay(farm_rng.choice(DECORATION_GROUPS['flowers']),x,y,m.cells)
     lookup = {(m.q,m.r): m for m in modules}
     for m in modules:
         if m.parent is not None:
@@ -193,8 +243,15 @@ def build_colony(profile):
             decorate_exact(flowers)
             decorate([f'f{i}' for i in range(1,11)],6 + min(profile.max_depth,3))
         elif m.kind == 'plaza':
-            decorate(DECORATION_GROUPS['activity'],min(8,1+profile.recent_commits//5) if profile.recent_commits else 0)
-            decorate(['m21'],1)
+            cx,cy = m.center
+            # Barris agrupados num pequeno depósito, em vez de espalhados.
+            barrel_pattern = [
+                ('m9',cx-7,cy-2), ('m9',cx-6,cy-2),
+                ('m6',cx-7,cy+1), ('m9',cx-5,cy+2),
+            ]
+            for name,x,y in barrel_pattern[:farm['barrels']]:
+                island.place(name,x,y,m.cells)
+            decorate([f'f{i}' for i in range(1,11)],farm['grass'])
             if profile.has_docs:
                 decorate(DECORATION_GROUPS['signs'],1)
             if profile.has_tests:
@@ -211,6 +268,7 @@ def translate(island, dx, dy):
         return {(x+dx,y+dy) for x,y in points}
     island.ground, island.paths, island.occupied = map(move,(island.ground,island.paths,island.occupied))
     island.objects = [(name,x+dx,y+dy) for name,x,y in island.objects]
+    island.overlays = [(name,x+dx,y+dy) for name,x,y in island.overlays]
     island.districts = [(d,x+dx,y+dy) for d,x,y in island.districts]
     island.entrance = island.entrance[0]+dx,island.entrance[1]+dy
     island.exit = island.exit[0]+dx,island.exit[1]+dy

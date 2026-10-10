@@ -66,6 +66,10 @@ class ProfileTests(unittest.TestCase):
         island = build_layout([profile_repository(data)])[0][0]
         modules = {(m.q, m.r): m for m in island.modules}
         self.assertEqual({m.kind for m in island.modules}, {'plaza', 'house', 'garden'})
+        self.assertEqual(sum(name == 'h' for name,x,y in island.objects), 3)
+        self.assertEqual(sum(name.startswith('farm_fence_') for name,x,y in island.objects), 16)
+        self.assertEqual(len(island.overlays), 6)
+        self.assertTrue(all(name.startswith('flower') for name,x,y in island.overlays))
         for module in island.modules[1:]:
             parent = modules[module.parent]
             self.assertIn((module.q-parent.q, module.r-parent.r), DIRECTIONS)

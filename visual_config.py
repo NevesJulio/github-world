@@ -87,3 +87,17 @@ def flower_assets_for(profile, config=None):
         raise ValueError('Nenhum asset configurado para vegetation.flowers.assets')
     rng = random.Random(f'{profile.name}/flower-variants')
     return [rng.choice(variants) for _ in range(density)]
+
+
+def farm_settings(profile, config=None):
+    farm = (config or load_visual_config()).get('farm', {})
+    settings = dict(farm.get('defaults', {}))
+    settings.update(farm.get('repositories', {}).get(profile.name, {}))
+    return {
+        'enabled': bool(settings.get('enabled', True)),
+        'beds': max(1, min(3, int(settings.get('beds', 3)))),
+        'flowers': max(0, min(12, int(settings.get('flowers', 5)))),
+        'extra_rocks': max(0, min(12, int(settings.get('extra_rocks', 5)))),
+        'grass': max(0, min(20, int(settings.get('grass', 8)))),
+        'barrels': max(0, min(4, int(settings.get('barrels', 3)))),
+    }

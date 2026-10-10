@@ -26,6 +26,8 @@ ASSET_GLOSSARY = {
     "x": "Special tiles / entradas e outros elementos especiais",
 
     "m": "Map / elementos do mapa ou minimapa",
+
+    "h": "horta / horta",
 }
 
 
@@ -114,6 +116,20 @@ assets.add(Tile(
     Ilhas,
     col=2,   # ajustar
     row=3
+))
+
+
+# =========================
+# horta
+# =========================
+
+assets.add(Tile(
+    "h",
+    Ilhas,
+    col=15,
+    row=9,
+    width=1,
+    height=3
 ))
 
 
@@ -738,7 +754,18 @@ assets.add(Tile("grass7", grama, col=12, row=2))
 assets.add(Tile("grass8", grama, col=13, row=2))
 
 DECORATION_GROUPS["flowers"] = ["flower1", "flower2", "flower3"]
-ASSET_GLOSSARY.update({"t": "Árvores", "flower": "Flores", "wood": "Madeira antiga", "floor": "Pisos antigos", "grass": "Grama antiga", "y": "Mapa"})
+
+# Cerca modular da horta: cantos, laterais e segmentos horizontais.
+assets.add(Tile("farm_fence_tl", Ilhas, col=5, row=4))
+assets.add(Tile("farm_fence_top", Ilhas, col=6, row=4))
+assets.add(Tile("farm_fence_tr", Ilhas, col=7, row=4))
+assets.add(Tile("farm_fence_left", Ilhas, col=5, row=5))
+assets.add(Tile("farm_fence_right", Ilhas, col=7, row=5))
+assets.add(Tile("farm_fence_bl", Ilhas, col=5, row=6))
+assets.add(Tile("farm_fence_bottom", Ilhas, col=6, row=6))
+assets.add(Tile("farm_fence_br", Ilhas, col=7, row=6))
+
+ASSET_GLOSSARY.update({"t": "Árvores", "flower": "Flores", "farm_fence": "Cerca da horta", "wood": "Madeira antiga", "floor": "Pisos antigos", "grass": "Grama antiga", "y": "Mapa"})
 
 # Centro do bloco de terra; e1 é decorativo no tileset consolidado.
 assets.add(Tile('path1', Ilhas, col=1, row=6))

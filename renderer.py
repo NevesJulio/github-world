@@ -92,6 +92,8 @@ def render_map(islands, dimensions):
                 paste_asset(canvas, 'path1', x,y)
         for name,x,y in sorted(island.objects, key=lambda obj: (obj[2]+assets.get(obj[0]).height,obj[1])):
             paste_asset(canvas,name,x,y)
+        for name,x,y in sorted(island.overlays, key=lambda obj: (obj[2],obj[1])):
+            paste_asset(canvas,name,x,y)
         # Rótulos próprios para identificar os bairros representados.
         for district,x,y in island.districts:
             text = district.name
@@ -103,7 +105,7 @@ def render_map(islands, dimensions):
         title = p.name + (' *' if p.incomplete else '')
         draw.text((center,(island.y-3)*TILE_SIZE),title,font=font,anchor='mt',fill='white',stroke_width=1,stroke_fill=(20,35,25,255))
         draw.text((center,(island.y-2)*TILE_SIZE),f'{p.main_language} | {p.files} arquivos | {p.directories} dirs',font=font,anchor='mt',fill=(230,240,230,255),stroke_width=1,stroke_fill=(20,35,25,255))
-        labels = {'plaza': 'Praça', 'garden': 'Jardim', 'workshop': 'Oficina', 'tests': 'Testes', 'docs': 'Documentação'}
+        labels = {'plaza': 'Poço e horta', 'garden': 'Flores', 'workshop': 'Oficina', 'tests': 'Testes', 'docs': 'Documentação'}
         for module in island.modules:
             if module.kind in labels:
                 cx,cy = module.center

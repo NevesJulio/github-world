@@ -64,3 +64,21 @@ vegetation:
     repositories:
       github-world:
         density: 12
+
+farm:
+  defaults:
+    enabled: true
+    beds: 3
+    flowers: 6
+    extra_rocks: 5
+    grass: 8
+    barrels: 3
+
+  repositories:
+    github-world:
+      enabled: true
+      beds: 3
+      flowers: 7
+      extra_rocks: 7
+      grass: 12
+      barrels: 4
