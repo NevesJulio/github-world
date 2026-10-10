@@ -103,9 +103,9 @@ def render_map(islands, dimensions):
         p = island.profile
         center = (island.x+island.width/2)*TILE_SIZE
         title = p.name + (' *' if p.incomplete else '')
-        draw.text((center,(island.y-3)*TILE_SIZE),title,font=font,anchor='mt',fill='white',stroke_width=1,stroke_fill=(20,35,25,255))
-        draw.text((center,(island.y-2)*TILE_SIZE),f'{p.main_language} | {p.files} arquivos | {p.directories} dirs',font=font,anchor='mt',fill=(230,240,230,255),stroke_width=1,stroke_fill=(20,35,25,255))
-        labels = {'plaza': 'Poço e horta', 'garden': 'Flores', 'workshop': 'Oficina', 'tests': 'Testes', 'docs': 'Documentação'}
+        draw.text((center,TILE_SIZE),title,font=font,anchor='mt',fill='white',stroke_width=1,stroke_fill=(20,35,25,255))
+        draw.text((center,2*TILE_SIZE),f'{p.main_language} | {p.files} arquivos | {p.directories} dirs',font=font,anchor='mt',fill=(230,240,230,255),stroke_width=1,stroke_fill=(20,35,25,255))
+        labels = {'plaza': 'Poço e horta', 'garden': 'Floresta'}
         for module in island.modules:
             if module.kind in labels:
                 cx,cy = module.center

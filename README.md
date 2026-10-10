@@ -1,6 +1,6 @@
 # github-world
 
-Mapa em pixel art que representa os principais repositórios do GitHub como ilhas, atualizado automaticamente por cron no GitHub Actions. Cada ilha usa a árvore real de arquivos para formar uma colônia de módulos hexagonais conectados, com crescimento orgânico.
+Bem vindo ao mapa em pixel art que representa os principais repositórios do GitHub como ilhas, atualizado automaticamente por cron no GitHub Actions. Cada ilha usa a árvore real de arquivos para formar uma colônia de módulos hexagonais conectados, com crescimento orgânico.
 
 ![Mundo dos repositórios](world.gif)
 
@@ -19,8 +19,7 @@ Por padrão, consulta apenas o repositório público mais recentemente atualizad
 python3 generate.py --username SEU_USUARIO
 ```
 
-Para voltar a mostrar dois ou três repositórios, use `--limit 2` ou `--limit 3`. Alterar o valor padrão de `get_top_repositories()` em `github_activity.py` não muda o gerador principal; quem controla a quantidade é o argumento `--limit` de `generate.py`.
-
+Para voltar a mostrar dois ou três repositórios, use `--limit 2` ou `--limit 3`. Alterar o valor padrão de `get_top_repositories()` 
 A variável opcional `GITHUB_TOKEN` autentica as consultas e aumenta o limite de requests. O token nunca é salvo no snapshot. O workflow usa o token disponibilizado pelo GitHub Actions e atualiza `map.png` e `world.gif` a cada seis horas.
 
 Os caminhos dos assets são relativos aos arquivos Python: o gerador também funciona quando executado de outro diretório. As saídas vão para a raiz do projeto por padrão; use `--output-dir /tmp/meu-mapa` para escolher outro destino.

@@ -101,3 +101,17 @@ def farm_settings(profile, config=None):
         'grass': max(0, min(20, int(settings.get('grass', 8)))),
         'barrels': max(0, min(4, int(settings.get('barrels', 3)))),
     }
+
+
+def house_style(profile, config=None):
+    house = (config or load_visual_config()).get('house', {})
+    style = house.get('defaults', {}).get('style', 'auto')
+    style = house.get('repositories', {}).get(profile.name, {}).get('style', style)
+    prefixes = {'green': 'cv', 'orange': 'co', 'gray': 'cc'}
+    if style == 'auto':
+        choices = ('cv', 'co', 'cc')
+        seed = sum((index+1)*ord(char) for index,char in enumerate(profile.name))
+        return choices[seed % len(choices)]
+    if style not in prefixes:
+        raise ValueError(f'Estilo de casa desconhecido em world.yaml: {style}')
+    return prefixes[style]

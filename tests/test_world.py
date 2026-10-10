@@ -55,7 +55,7 @@ class ProfileTests(unittest.TestCase):
                 used.update(footprint)
                 self.assertLess(x+tile.width, dimensions[0])
                 self.assertLess(y+tile.height, dimensions[1])
-            self.assertEqual(len(island.districts),min(3,len(island.profile.districts)))
+            self.assertEqual(len(island.districts),1)
             self.assertEqual(sum(d.files for d,x,y in island.districts),island.profile.files)
             self.assertTrue(island.paths <= island.ground)
             self.assertTrue(island.occupied <= island.ground)
@@ -95,7 +95,11 @@ class ProfileTests(unittest.TestCase):
         data['tree'] += [{'path': f'dir0/nested/extra{n}.py', 'type': 'blob'} for n in range(100)]
         after = build_layout([profile_repository(data)])[0][0]
         self.assertEqual({m.key: (m.q,m.r) for m in before.modules}, {m.key: (m.q,m.r) for m in after.modules})
-        self.assertNotEqual([name for name,x,y in before.objects if name.startswith('cv')], [name for name,x,y in after.objects if name.startswith('cv')])
+        house_prefixes = ('cv', 'co', 'cc')
+        self.assertNotEqual(
+            [name for name,x,y in before.objects if name.startswith(house_prefixes)],
+            [name for name,x,y in after.objects if name.startswith(house_prefixes)],
+        )
 
     def test_identical_data_produces_identical_outputs(self):
         p = profile_repository(repository())

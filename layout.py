@@ -5,7 +5,7 @@ import hashlib
 import random
 from assets import assets, DECORATION_GROUPS
 from repo_profile import DirectoryProfile
-from visual_config import farm_settings, flower_assets_for, tree_assets_for
+from visual_config import farm_settings, flower_assets_for, house_style, tree_assets_for
 
 TILE_SIZE = 16
 DIRECTIONS = ((1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1))
@@ -69,14 +69,6 @@ class Island:
         return True
 
 
-def house_color(language):
-    if language in {'Python', 'Jupyter Notebook', 'R', 'Julia'}:
-        return 'cv'
-    if language in {'C', 'C++', 'Rust', 'Go', 'Java'}:
-        return 'cc'
-    return 'co'
-
-
 def attach(modules, key, kind, seed):
     occupied = {(m.q, m.r) for m in modules}
     # Escolha de borda local e reproduzível. Os vazios preservam braços orgânicos.
@@ -116,22 +108,21 @@ def connect(island, start, end):
 
 
 def build_colony(profile):
-    modules = [Module('plaza', 'plaza', 0, 0)]
-    # Até três casas: as duas maiores e uma casa que representa os demais bairros.
-    visible = list(profile.districts)
-    if len(visible) > 3:
-        rest = visible[2:]
-        visible = visible[:2] + [DirectoryProfile('(outros)',sum(d.files for d in rest),max(d.max_depth for d in rest))]
-    for district in sorted(visible,key=lambda d: d.name):
-        attach(modules,district.name,'house',profile.name)
-    attach(modules,'garden0','garden',profile.name)
+    # Composição manual da ilha: casa no centro, floresta à esquerda e
+    # poço/horta à direita. q/r são as coordenadas dos honeycombs.
+    modules = [
+        Module('main-house', 'house', 0, 0),
+        # Posições opostas deixam a casa exatamente no meio da composição.
+        Module('garden0', 'garden', -1, 1, (0, 0)),
+        Module('plaza', 'plaza', 1, -1, (0, 0)),
+    ]
+    main_district = DirectoryProfile('Projeto', profile.files, profile.max_depth)
     farm = farm_settings(profile)
     terrain = set().union(*(hex_cells(m.q, m.r) for m in modules))
     min_x, min_y = min(x for x,y in terrain), min(y for x,y in terrain)
     shift_x, shift_y = -min_x, -min_y
     ground = {(x+shift_x,y+shift_y) for x,y in terrain}
     island = Island(profile, 0, 0, max(x for x,y in ground)+1, max(y for x,y in ground)+1, modules=modules, ground=ground)
-    districts = {d.name: d for d in visible}
     for m in modules:
         cx, cy = hex_center(m.q, m.r)
         m.center = cx+shift_x, cy+shift_y
@@ -139,19 +130,14 @@ def build_colony(profile):
         cx, cy = m.center
         m.anchor = cx, cy+5
         if m.kind == 'house':
-            district = districts[m.key]
-            language = profile.main_language
-            index = list(districts).index(m.key)
-            if index and len(profile.languages) > 1:
-                language = profile.languages[index % len(profile.languages)]
-            name = f'{house_color(language)}{district.size}'
-            if district.size == 3:
+            name = f'{house_style(profile)}{main_district.size}'
+            if main_district.size == 3:
                 name += '_compact'
             tile = assets.get(name)
             bx, by = cx-tile.width//2, cy-4
             if not island.place(name,bx,by,m.cells):
                 raise ValueError(f'Casa não cabe no módulo {m.key}')
-            island.districts.append((district,bx,by+tile.height))
+            island.districts.append((main_district,bx,by+tile.height))
             connect(island,m.anchor,(cx,by+tile.height))
         elif m.kind == 'plaza':
             name = 'm13' if (profile.days_inactive or 0) > 90 else 'm18'
@@ -284,7 +270,8 @@ def build_layout(profiles):
     islands = [build_colony(p) for p in profiles]
     x = 3
     plaza_y = max(i.modules[0].anchor[1] for i in islands)
+    # Onze tiles reservam 176 px no topo para os painéis e o título.
     for island in islands:
-        translate(island,x,4+plaza_y-island.modules[0].anchor[1])
+        translate(island,x,11+plaza_y-island.modules[0].anchor[1])
         x += island.width+4
     return islands,(x-1,max(i.y+i.height for i in islands)+3)

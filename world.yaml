@@ -82,3 +82,13 @@ farm:
       extra_rocks: 7
       grass: 12
       barrels: 4
+
+# Identidade da casa principal. Opções: auto, green, orange ou gray.
+# Em auto, o nome do repositório escolhe uma cor estável.
+house:
+  defaults:
+    style: auto
+
+  repositories:
+    github-world:
+      style: orange
